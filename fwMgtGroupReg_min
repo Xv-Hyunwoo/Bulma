@@ -1,0 +1,532 @@
+<%@ page language="java" contentType="text/html;charset=utf-8" pageEncoding="utf-8" %>
+<%@ include file="./fwReqMerge.jsp" %>
+
+        <!DOCTYPE html>
+        <html>
+
+        <head>
+            <meta charset="UTF-8">
+            <meta http-equiv="X-UA-Compatible" content="IE=edge">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Firewall Group</title>
+            <link rel="icon" href="./assets/favicon/favicon.ico" type="image/x-icon">
+        </head>
+
+        <body data-simplebar style="max-height:100vh" ;>
+            <div class="container">
+
+                <table class="width-min-max-850">
+                    <tr>
+                        <td class="width-30"></td>
+                        <td class="width-760">
+                            <div class="columns">
+                                <div class="column">
+                                    <span class="is-size-7 is-pulled-right">
+                                        추후 path 입력
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="columns">
+                                <div class="column">
+                                    <div class="level ml-3">
+                                        <div class="level-left is-size-5">
+                                            <span class="tag is-link">
+                                                <i class="fa fa-fw fa-solid fa-angle-right"></i>
+                                            </span>&nbsp;
+
+                                            그룹관리
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+
+            <!--////////////////////////////////////////////////////////////////////////////////
+                ////////////////////////////////////////////////////////////////////////////////
+                ////////////////////////////////////////////////////////////////////////////////
+                ////////////////////////////////////////////////////////////////////////////////
+                //////////////////////////////////////////////////////////////////////////////// -->
+            <!-- 
+                <div class="columns">
+                <div class="column">
+                    <div class="control is-pulled-right">
+                    <a class="button is-small is-link btnModalYellowPage">
+                        문의처보기
+                    </a>
+                    </div>
+                </div>  
+                </div> -->
+
+            <!--////////////////////////////////////////////////////////////////////////////////
+                ////////////////////////////////////////////////////////////////////////////////
+                ////////////////////////////////////////////////////////////////////////////////
+                ////////////////////////////////////////////////////////////////////////////////
+                //////////////////////////////////////////////////////////////////////////////// -->
+
+            <div class="columns">
+                <div class="column">
+                    <div class="level my-1">
+                        <div class="level-left">
+                            <i class="fa fa-fw fa-solid fa-angle-right"></i>&nbsp;
+                            출발지, 목적지 그룹 상세 관리
+                        </div>
+                        <div class="level-right">
+                        </div>
+                    </div>
+                    <table class="table is-bordered is-narrow is-hoverable is-fullwidth is-border-top-thick mb-1">
+                        <tr>
+                            <td class="width-100 has-background-link-light is-vcentered has-text-centered">
+                                <span class="is-size-7">그룹명</span>
+
+                            </td>
+                            <td colspan="11" class="is-vcentered ">
+
+                                <div class="field has-addons">
+                                   
+                                        <input type="text" class="input is-small is-fullwidth">
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+                        <tr>
+                            <td class="width-100 has-background-link-light is-vcentered has-text-centered">
+                                <span class="is-size-7">등록자</span>
+                            </td>
+                            <td colspan="2" class="is-vcentered ">
+                                <div class="field has-addons">
+                                    <input type="text" class="input is-small is-fullwidth">
+                                </div>
+                             </td>
+                             <td class="width-100 has-background-link-light is-vcentered has-text-centered">
+                                <span class="is-size-7">등록일</span>
+                            </td>
+                            <td colspan="2" class="is-vcentered ">
+                                <div class="field has-addons">
+                                    <input type="text" class="input is-small is-fullwidth">
+                                </div>
+                             </td>
+                            <td class="width-100 has-background-link-light is-vcentered has-text-centered">
+                                <span class="is-size-7">최종 수정자</span>
+                            </td>
+                            <td colspan="2" class="is-vcentered ">
+                                <div class="field has-addons">
+                                    <input type="text" class="input is-small is-fullwidth">
+                                </div>
+                             </td>
+                            <td class="width-100 has-background-link-light is-vcentered has-text-centered">
+                                <span class="is-size-7">최종 수정일</span>
+                            </td>
+                            <td colspan="2" class="is-vcentered ">
+                                <div class="field has-addons">
+                                    <input type="text" class="input is-small is-fullwidth">
+                                </div>
+                             </td>
+                        </tr>
+
+
+
+                        <tr>
+                            <td class="width-100 has-background-link-light is-vcentered has-text-centered">
+                                <span class="is-size-7">결재자</span>
+                            </td>
+                            <td colspan="2" class="is-vcentered ">
+                                <div class="field has-addons">
+                                    <input type="text" class="input is-small is-fullwidth">
+                                </div>
+                             </td>
+                             <td class="width-100 has-background-link-light is-vcentered has-text-centered">
+                                <span class="is-size-7">결재일</span>
+                            </td>
+                            <td colspan="2" class="is-vcentered ">
+                                <div class="field has-addons">
+                                    <input type="text" class="input is-small is-fullwidth">
+                                </div>
+                             </td>
+                            <td class="width-100 has-background-link-light is-vcentered has-text-centered">
+                                <span class="is-size-7">결재 상태</span>
+                            </td>
+                            <td colspan="4" class="is-vcentered ">
+                                <div class="field has-addons">
+                                    <input type="text" class="input is-small is-fullwidth">
+                                </div>
+                             </td>
+                        </tr>
+
+                        <tr>
+                            <td class="width-100 has-background-link-light is-vcentered has-text-centered">
+                                <span class="is-size-7">노드 선택</span>
+                            </td>
+                            <td colspan="5">
+
+                                <div class="tabs is-toggle is-small">
+                                    <ul>
+                                        <li class="is-active" id="groupTabSource">
+                                            <a>
+                                                <span>출발지</span>
+                                            </a>
+                                        </li>
+                                        <li id="groupTabTarget">
+                                            <a>
+                                                <span>도착지</span>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </td>
+                            <td class="width-100 has-background-link-light is-vcentered has-text-centered">
+                                <span class="is-size-7">그룹 유형</span>
+                            </td>
+                            <td colspan="5" class="is-vcentered">
+                                <div class="field has-addons">
+                                    <div class="select is-small mr-2">
+                                        <select class="select">
+                                            <option value="ALL" selected>전체</option>
+                                            <option value="ID">ID</option>
+                                            <option value="IP">IP</option>
+                                            <option value="URL">URL</option>
+                                            <option value="COMPANY" style="display: none;">URL</option>
+                                        </select>
+                                    </div>            
+                                               
+                                </div>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td class="width-100 has-background-link-light is-vcentered has-text-centered">
+                                <span class="is-size-7">용도</span>
+                            </td>
+                            <td colspan="11">
+                                <textarea class="textarea is-small is-link has-fixed-size" rows="2">
+                                </textarea>
+                            </td>   
+                        </tr>
+
+                        <tr>
+                            <td class="width-100 has-background-link-light is-vcentered has-text-centered">
+                                <p class="is-size-7">도착지</p>
+                                <p class="is-size-7">공개범위</p>
+                            </td>
+                            <td colspan="11">
+                                <div class="tabs is-toggle is-small">
+                                    <ul>
+                                        <li>
+                                            <a>
+                                                <span>부서</span>
+                                            </a>
+                                        </li>
+                                        <li class="is-active">
+                                            <a>
+                                                <span>국내사업부/해외총괄</span>
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a>
+                                                <span>전체</span>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </td>   
+                        </tr>
+
+                    </table>
+
+
+                    <div class="block is-pulled-right">
+                            <button class="button is-small is-link width-100">저장</button>
+
+                    </div>
+                </div>
+
+
+
+            </div>
+
+            <!--////////////////////////////////////////////////////////////////////////////////
+                ////////////////////////////////////////////////////////////////////////////////
+                ////////////////////////////////////////////////////////////////////////////////
+                ////////////////////////////////////////////////////////////////////////////////
+                //////////////////////////////////////////////////////////////////////////////// -->
+
+            <div class="field">
+
+                    <div class="level my-1">
+                        <div class="level-left">
+                            <i class="fa fa-fw fa-solid fa-angle-right"></i>&nbsp;
+                            노드별 항목 관리
+                        </div>
+                        <div class="level-right">
+                        </div>
+                    </div>
+
+                    <table class="table is-bordered is-hoverable is-fullwidth has-text-centered is-border-top-thick" id="sourceGroupTable">
+                        <thead>
+                            <tr class="has-background-link-light is-size-7">
+                                <th class="has-text-centered">IP/ID</th>
+                                <th class="has-text-centered">실사용자 ID</th>
+                                <th class="has-text-centered">사용자명(Knox Name)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="tbody-blank">
+                            <tr class="is-size-7">
+                                <td class="has-text-centered">
+                                    <div class="field has-addons">
+                                        <input type="text" class="input is-small is-fullwidth"/>
+                                        <button class="button is-small is-link ml-2">
+                                        <i class="fa fa-fw fa-solid fa-search"></i>
+                                        <%-- <%=getPro.getProperty("FWL0100057_",languageCodeForConversion)%> --%>
+                                        </button>
+                                </div>
+                                    </td>
+                                <td class="has-text-centered">
+                                    <div class="field has-addons">
+                                        <input type="text" class="input is-small is-fullwidth"/>
+                                        <button class="button is-small is-link ml-2">
+                                        <i class="fa fa-fw fa-solid fa-search"></i>
+                                        <%-- <%=getPro.getProperty("FWL0100057_",languageCodeForConversion)%> --%>
+                                        </button>
+                                </div>
+                                    
+                                </td>
+                                <td class="has-text-centered">
+                                    <input type="text" class="input is-small is-fullwidth"/>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <table class="table is-bordered is-hoverable is-fullwidth has-text-centered is-border-top-thick" id="targetGroupTable" style="display: none;">
+                        <thead>
+                            <tr class="has-background-link-light is-size-7">
+                                <th class="has-text-centered">IP/URL</th>
+                                <th class="has-text-centered">시스템명 ID</th>
+                                <th class="has-text-centered">서비스포트</th>
+                                <th class="has-text-centered">구분</th>
+                                <th class="has-text-centered">포트 사용 목적</th>
+                            </tr>
+                        </thead>
+                        <tbody class="tbody-blank">
+                            <tr class="is-size-7">
+                                <td class="has-text-centered">                   
+                                        <input type="text" class="input is-small is-fullwidth"/>
+            
+                                    </td>
+                                <td class="has-text-centered">
+                                        <input type="text" class="input is-small is-fullwidth"/>
+                                </td>
+                                <td class="has-text-centered">
+                                    <input type="text" class="input is-small is-fullwidth"/>
+                                </td>
+                                <td class="has-text-centered">
+                                    <div class="control">
+                                        <div class="select is-small">
+                                          <select class="select" id="fwReqPortType">
+                                            <option value="TCP">TCP</option>
+                                            <option value="UDP">UDP</option>
+                                            <option value="TCPUDP">TCP+UDP</option>
+                                            <option value="OTHERS">기타</option>
+                                          </select>
+                                        </div>
+                                      </div>
+                                    </td>
+                                <td class="has-text-centered">
+                                    <input type="text" class="input is-small is-fullwidth"/>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+               
+            </div>
+
+
+            <!--////////////////////////////////////////////////////////////////////////////////
+                ////////////////////////////////////////////////////////////////////////////////
+                ////////////////////////////////////////////////////////////////////////////////
+                ////////////////////////////////////////////////////////////////////////////////
+                //////////////////////////////////////////////////////////////////////////////// -->
+
+            <div class="columns mt-2">
+
+
+                <div class="column">
+                    <div class="block is-pulled-right mb-2">
+                        <button class="button is-small is-link">
+                        <i class="fa fa-fw fa-solid fa-plus"></i>&nbsp;
+                        추가
+                        <%-- <%=getPro.getProperty("FWL0600085_",languageCodeForConversion)%> --%>
+                        </button>
+                        <button class="button is-small is-link">
+                        <i class="fa fa-fw fa-solid fa-minus"></i>&nbsp;
+                        삭제
+                        <%-- <%=getPro.getProperty("FWL0600086_",languageCodeForConversion)%> --%>
+                        </button>
+                    </div>
+
+
+                    <table class="table is-bordered is-hoverable is-fullwidth has-text-centered is-border-top-thick">
+                        <thead>
+                            <tr class="has-background-link-light is-size-7">
+                                <th class="has-text-centered"><input type="checkbox" class="checkbox"></th>
+                                <th class="has-text-centered">GROUP_ID</th>
+                                <th class="has-text-centered">Item No</th>
+                                <th class="has-text-centered">IP/ID/URL</th>
+                                <th class="has-text-centered">실사용자 ID</th>
+                                <th class="has-text-centered">사용자명/시스템명</th>
+                                <th class="has-text-centered">서비스포트</th>
+                                <th class="has-text-centered">구분</th>
+                                <th class="has-text-centered">포트 사용 목적</th>
+                                <th class="has-text-centered">등록일</th>
+                            </tr>
+                        </thead>
+                        <tbody class="tbody-blank">
+                            <tr class="is-size-7">
+                                <td colspan="10" class="has-text-centered">신청 내역이 존재하지 않습니다.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                </div>
+            </div>
+
+
+            <!--////////////////////////////////////////////////////////////////////////////////
+                ////////////////////////////////////////////////////////////////////////////////
+                ////////////////////////////////////////////////////////////////////////////////
+                ////////////////////////////////////////////////////////////////////////////////
+                ////////////////////////////////////////////////////////////////////////////////
+                ////////////////////////////////////////////////////////////////////////////////
+                ////////////////////////////////////////////////////////////////////////////////
+                ////////////////////////////////////////////////////////////////////////////////
+                ////////////////////////////////////////////////////////////////////////////////
+                //////////////////////////////////////////////////////////////////////////////// -->
+
+
+            <div class="columns">
+                <div class="column">
+
+                    <div class="level ml-3 mb-2">
+                        <div class="level-left">
+                        <i class="fa fa-fw fa-solid fa-angle-right"></i>&nbsp;
+                        결재자정보
+                            <%-- <%=getPro.getProperty("ECT0100056_",languageCodeForConversion)%><!--결재자정보--> --%>
+                        </div>
+                    </div>
+
+                    <table class="table is-bordered is-narrow is-hoverable is-fullwidth is-border-top-thick">
+                        <tr class="tr-approval">
+                            <td class="width-100 has-background-link-light is-vcentered has-text-centered">
+                                <span class="is-size-7">
+                                결재자
+                                <%-- <%=getPro.getProperty(isDelegateApprover?"ECT0300157_":"ECT0100057_",languageCodeForConversion)%><!--결재자--> --%>
+                                </span>
+                            </td>
+                            <td class="">
+                            	<div class="field is-grouped is-expanded">
+	                                <input type="text" class="input is-small is-fullwidth" id="APP_NM" name="APP_NM" readonly>
+	                                <a type="button" class="button is-small ml-1 is-link btn-search-approval-user" style="display:none" onClick="SearchAppr(this, 'B', 'APP_NM')">
+                                    김프로
+                                    <%-- <%=getPro.getProperty("FWL0100057_",languageCodeForConversion)%> --%>
+                                    </a>
+	                                <input type="hidden" class="input is-small is-fullwidth" id="APP_NM_cnt" name="APP_NM_cnt" value="0">
+                                </div>
+                            </td>
+                            <td class="width-100 has-background-link-light is-vcentered has-text-centered">
+                                <span class="is-size-7">
+                                직위
+                                <%-- <%=getPro.getProperty("ECT0200018_",languageCodeForConversion)%><!--직위--> --%>
+                                </span>
+                            </td>
+                            <td class="">
+                                <input type="text" class="input is-small is-fullwidth" name="POSITION_0" id="POSITION_0" readonly value="">
+                                <input type="hidden" name="POSITION_CD_0" id="POSITION_CD_0"  value="">
+                                <input type="hidden" name="POSITION_EN_0" id="POSITION_EN_0"  value="">
+                                            
+                            </td>
+                            <td class="width-100 has-background-link-light is-vcentered has-text-centered">
+                                <span class="is-size-7">
+                                부서
+                                <%-- <%=getPro.getProperty("ECT0200017_",languageCodeForConversion)%><!--부서--> --%>
+                                </span>
+                            </td>
+                            <td class="">
+                                <input type="text" class="input is-small is-fullwidth" name="DEPT_0" id="DEPT_0" readonly value="">
+                                <input type="hidden" name="DP_NM_0" id="DP_NM_0" value="">
+                                <input type="hidden" name="DEPT_CD_0" id="DEPT_CD_0" value="">
+                                <input type="hidden" name="DEPT_EN_0" id="DEPT_EN_0" value="">
+                            </td>
+                            				<input type="hidden" name = "APP_ID_0"        id = "APP_ID_0"       value = "">
+                                            <input type="hidden" name = "APP_GBN_0"       id = "APP_GBN_0"      value = "B">
+                                            <input type="hidden" name = "INIT_COUNT_0"    id = "INIT_COUNT_0"   value = "1">
+                                            <input type="hidden" name = "SORT_0"          id = "SORT_0"         value = "0">
+                                            <input type="hidden" name = "APP_STATUS_0"    id = "APP_STATUS_0"   value = "0">
+                                            <input type="hidden" name = "APP_DT_0"        id = "APP_DT_0"       value = "">
+                                            <input type="hidden" name = "NM_0"            id = "NM_0"           value = "">
+                                            <input type="hidden" name = "ENCN_0"          id = "ENCN_0"         value = "">
+                                            <input type="hidden" name = "APP_EMPNO_0"     id = "APP_EMPNO_0"    value = "">
+                                            <input type="hidden" name = "COM_NM_0"        id = "COM_NM_0"       value = "">
+                                            <input type="hidden" name = "COM_CD_0"        id = "COM_CD_0"       value = "">
+                                            <input type="hidden" name = "SUB_ORG_NM_0"    id = "SUB_ORG_NM_0"   value = "">
+                                            <input type="hidden" name = "SUB_ORG_CD_0"    id = "SUB_ORG_CD_0"   value = "">
+                                            <input type="hidden" name = "BIZ_AREA_NM_0"   id = "BIZ_AREA_NM_0"  value = "">
+                                            <input type="hidden" name = "BIZ_AREA_CD_0"   id = "BIZ_AREA_CD_0"  value = "">
+                                            <input type="hidden" name = "BIZ_LOCAL_NM_0"  id = "BIZ_LOCAL_NM_0" value = "">
+                                            <input type="hidden" name = "BIZ_LOCAL_CD_0"  id = "BIZ_LOCAL_CD_0" value = "">
+                                            <input type="hidden" name = "OPINION_0"       id = "OPINION_0"      value = "">
+                                            <input type="hidden" name = "VIEW_FLAG_0"     id = "VIEW_FLAG_0"    value = "Y">
+                                            <input type="hidden" name = "APP_SIZE"      id = "APP_SIZE"    value = "0">
+                        </tr>
+                    </table>
+
+                    <div class="block is-pulled-right">
+                    	<button class="button is-small is-link" id="IMG_ID_BA" style="display:none">
+                        <%-- <%=getPro.getProperty("FWL0100057_",languageCodeForConversion)%> --%>
+                        </button>
+                        <button class="button is-small is-link btn-add-pre-approval">
+                        사전 결재자 추가
+                        <%-- <%=getPro.getProperty("FWL1300028_",languageCodeForConversion)%> --%>
+                        </button>
+                        <button class="button is-small is-link btn-add-agree-path">
+                        합의자 추가
+                        <%-- <%=getPro.getProperty("FWL1300029_",languageCodeForConversion)%> --%>
+                        </button>
+                    </div>
+                    <br>
+                    <br>
+                    <br>
+                </div>  
+            </div>
+
+            </td>
+            <td class="width-30"></td>
+            </tr>
+            </table>
+            </div>
+        </body>
+        <script>
+
+        $(document).ready(function () {
+
+            $("#groupTabSource").click(function () {
+                $('#groupTabTarget').removeClass('is-active')
+                $('#groupTabSource').addClass('is-active')
+                $('#targetGroupTable').hide();
+                $('#sourceGroupTable').show();
+            });
+            $("#groupTabTarget").click(function () {
+                $('#groupTabSource').removeClass('is-active')
+                $('#groupTabTarget').addClass('is-active')
+                $('#sourceGroupTable').hide();
+                $('#targetGroupTable').show();
+
+            });
+
+ })
+            
+
+        </script>
+
+        </html>
