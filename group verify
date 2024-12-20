@@ -1,0 +1,252 @@
+{
+
+
+    "MSG": "SUCCESS",
+
+
+    "result": [
+
+
+        {
+
+
+            "TARGET": "20.20.1.2",
+
+
+            "MESSAGE": "신청가능",
+
+
+            "TMP_SEQ": "196",
+
+
+            "PORT": "8080",
+
+
+            "EQUIP_YN": "YES",
+
+
+            "REQ_SOURCE": "USERGRP1",
+
+
+            "SOURCE": "chaem96.lee",
+
+
+            "REQ_TARGET": "IPGRP2",
+
+
+            "JOB": "TCP",
+
+
+            "REQ_NO": "F202412200011",
+
+
+            "REMARK": "TEST"
+
+
+        },
+
+
+        {
+
+
+            "TARGET": "20.20.10.2",
+
+
+            "MESSAGE": "신청가능",
+
+
+            "TMP_SEQ": "197",
+
+
+            "PORT": "8080",
+
+
+            "EQUIP_YN": "YES",
+
+
+            "REQ_SOURCE": "USERGRP1",
+
+
+            "SOURCE": "chaem96.lee",
+
+
+            "REQ_TARGET": "IPGRP2",
+
+
+            "JOB": "TCP",
+
+
+            "REQ_NO": "F202412200011",
+
+
+            "REMARK": "TEST"
+
+
+        },
+
+
+        {
+
+
+            "TARGET": "20.20.30.2",
+
+
+            "MESSAGE": "신청가능",
+
+
+            "TMP_SEQ": "198",
+
+
+            "PORT": "8080",
+
+
+            "EQUIP_YN": "YES",
+
+
+            "REQ_SOURCE": "USERGRP1",
+
+
+            "SOURCE": "chaem96.lee",
+
+
+            "REQ_TARGET": "IPGRP2",
+
+
+            "JOB": "TCP",
+
+
+            "REQ_NO": "F202412200011",
+
+
+            "REMARK": "TEST"
+
+
+        },
+
+
+        {
+
+
+            "TARGET": "20.20.1.2",
+
+
+            "MESSAGE": "신청가능",
+
+
+            "TMP_SEQ": "199",
+
+
+            "PORT": "8080",
+
+
+            "EQUIP_YN": "YES",
+
+
+            "REQ_SOURCE": "USERGRP1",
+
+
+            "SOURCE": "misc6849,seo",
+
+
+            "REQ_TARGET": "IPGRP2",
+
+
+            "JOB": "TCP",
+
+
+            "REQ_NO": "F202412200011",
+
+
+            "REMARK": "TEST"
+
+
+        },
+
+
+        {
+
+
+            "TARGET": "20.20.10.2",
+
+
+            "MESSAGE": "신청가능",
+
+
+            "TMP_SEQ": "200",
+
+
+            "PORT": "8080",
+
+
+            "EQUIP_YN": "YES",
+
+
+            "REQ_SOURCE": "USERGRP1",
+
+
+            "SOURCE": "misc6849,seo",
+
+
+            "REQ_TARGET": "IPGRP2",
+
+
+            "JOB": "TCP",
+
+
+            "REQ_NO": "F202412200011",
+
+
+            "REMARK": "TEST"
+
+
+        },
+
+
+        {
+
+
+            "TARGET": "20.20.30.2",
+
+
+            "MESSAGE": "신청가능",
+
+
+            "TMP_SEQ": "201",
+
+
+            "PORT": "8080",
+
+
+            "EQUIP_YN": "YES",
+
+
+            "REQ_SOURCE": "USERGRP1",
+
+
+            "SOURCE": "misc6849,seo",
+
+
+            "REQ_TARGET": "IPGRP2",
+
+
+            "JOB": "TCP",
+
+
+            "REQ_NO": "F202412200011",
+
+
+            "REMARK": "TEST"
+
+
+        }
+
+
+    ],
+
+
+    "STATUS": "SUCCESS"
+
+
+}
+
+
