@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>팝업 페이지네이션 및 검색</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.4/css/bulma.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+    <style>
+        .pagination {
+            justify-content: center;
+            margin-top: 1rem;
+        }
+
+        .total-rows {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .modal {
+            display: none;
+        }
+
+        .modal.is-active {
+            display: flex;
+        }
+
+        .search-box {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .modal-card {
+            width: 800px;
+            /* 팝업 크기 고정 */
+        }
+
+        .table-container {
+            height: 400px;
+            /* 테이블 높이 제한 (스크롤 제거) */
+            overflow: hidden;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- 팝업을 여는 버튼 -->
+    <div class="container mt-5">
+        <button class="button is-link" id="openPopup">
+            팝업 열기
+        </button>
+    </div>
+
+    <!-- 팝업창 (모달) -->
+    <div class="modal" id="searchPopup">
+        <div class="modal-background"></div>
+        <div class="modal-card">
+            <header class="modal-card-head has-background-link">
+                <p class="modal-card-title has-text-white">검색 결과</p>
+                <button class="delete" aria-label="close" id="closePopup"></button>
+            </header>
+
+            <section class="modal-card-body">
+                <!-- 검색 필드 -->
+                <div class="field has-addons search-box mb-4">
+                    <div class="control is-expanded">
+                        <input class="input" type="text" placeholder="검색어를 입력하세요" id="searchInput">
+                    </div>
+                    <div class="control">
+                        <button class="button is-link" id="searchBtn">
+                            검색
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 테이블 -->
+                <div class="table-container">
+                    <table class="table is-fullwidth is-hoverable">
+                        <thead>
+                            <tr>
+                                <th>번호</th>
+                                <th>이름</th>
+                                <th>상태</th>
+                            </tr>
+                        </thead>
+                        <tbody id="searchResults"></tbody>
+                    </table>
+                </div>
+
+                <!-- 페이지네이션 및 전체 행 수 -->
+                <div class="level">
+                    <div class="level-left">
+                        <p class="total-rows">총 데이터 수: <span id="totalRows">0</span></p>
+                    </div>
+                </div>
+                <div class="pagination is-centered" id="paginationContainer"></div>
+            </section>
+        </div>
+    </div>
+
+    <script>
+        let serverData = [];
+        let filteredData = [];
+        const rowsPerPage = 10;  // 테이블에 보일 최대 행 수 (페이지당)
+
+        // 팝업 열기
+        $('#openPopup').click(function () {
+            $('#searchPopup').addClass('is-active');
+            fetchDataFromServer();
+        });
+
+        // 팝업 닫기
+        $('#closePopup, .modal-background').click(function () {
+            $('#searchPopup').removeClass('is-active');
+        });
+
+        // 서버에서 데이터 받아오기 (모의 데이터)
+        function fetchDataFromServer() {
+            serverData = Array.from({ length: 73 }, (_, i) => ({
+                number: i + 1,
+                name: `사용자 ${i + 1}`,
+                status: i % 2 === 0 ? '활성' : '비활성'
+            }));
+            filteredData = serverData;
+            updateTable(1);
+        }
+
+        // 테이블 데이터 렌더링
+        function updateTable(page) {
+            const startIndex = (page - 1) * rowsPerPage;
+            const endIndex = startIndex + rowsPerPage;
+            const paginatedData = filteredData.slice(startIndex, endIndex);
+
+            $('#searchResults').empty();
+            paginatedData.forEach(item => {
+                $('#searchResults').append(`
+            <tr>
+                <td>${item.number}</td>
+                <td>${item.name}</td>
+                <td>${item.status}</td>
+            </tr>
+        `);
+            });
+
+            $('#totalRows').text(filteredData.length);
+
+            createPagination('#paginationContainer', {
+                totalRows: filteredData.length,
+                rowsPerPage: rowsPerPage,
+                currentPage: page,
+                onPageChange: updateTable
+            });
+        }
+
+        // 페이지네이션 생성
+        function createPagination(container, options) {
+            const { totalRows, rowsPerPage, currentPage, onPageChange } = options;
+            const totalPages = Math.max(1, Math.ceil(totalRows / rowsPerPage));
+            const $container = $(container);
+            $container.empty();
+
+            const maxVisiblePages = 5;
+            const half = Math.floor(maxVisiblePages / 2);
+
+            function createPageButton(page, text = page, isActive = false, disabled = false) {
+                const $button = $(`<a class="pagination-link ${isActive ? 'is-current' : ''}">${text}</a>`);
+                if (disabled) {
+                    $button.addClass('is-disabled');
+                } else {
+                    $button.click(() => onPageChange(page));
+                }
+                return $('<li>').append($button);
+            }
+
+            const $paginationList = $('<ul class="pagination-list"></ul>');
+
+            // 이전 페이지 버튼
+            $paginationList.append(
+                createPageButton(currentPage - 1, '<', false, currentPage === 1)
+            );
+
+            let startPage = Math.max(1, currentPage - half);
+            let endPage = Math.min(totalPages, currentPage + half);
+
+            if (currentPage <= half) {
+                endPage = Math.min(totalPages, maxVisiblePages);
+            }
+            if (currentPage > totalPages - half) {
+                startPage = Math.max(1, totalPages - maxVisiblePages + 1);
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                $paginationList.append(createPageButton(i, i, i === currentPage));
+            }
+
+            // 다음 페이지 버튼
+            $paginationList.append(
+                createPageButton(currentPage + 1, '>', false, currentPage === totalPages)
+            );
+
+            $container.append($paginationList);
+        }
+
+        // 검색 필터링
+        $('#searchBtn').click(function () {
+            const query = $('#searchInput').val().trim().toLowerCase();
+            filteredData = serverData.filter(item => item.name.toLowerCase().includes(query));
+            updateTable(1);
+        });
+
+        // 초기 데이터 로드
+        $(document).ready(function () {
+            fetchDataFromServer();
+        });
+    </script>
+
+</body>
+
+</html>
