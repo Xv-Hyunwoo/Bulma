@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IP 및 ID 유효성 검증</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.4/css/bulma.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+    <!-- FontAwesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        .validation-icon {
+            margin-left: 10px;
+            font-size: 1.2rem;
+            display: none;
+            vertical-align: middle;
+        }
+
+        #typeDisplay {
+            margin-top: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container mt-5">
+        <div class="box">
+            <label class="label">IP 또는 ID 입력</label>
+            <div class="control has-icons-right">
+                <input id="userInput" class="input" type="text" placeholder="IP 또는 ID를 입력하세요">
+                <span class="icon is-small is-right validation-icon" id="successIcon">
+                    <i class="fa-solid fa-circle-check has-text-success"></i>
+                </span>
+                <span class="icon is-small is-right validation-icon" id="errorIcon">
+                    <i class="fa-solid fa-exclamation-circle has-text-danger"></i>
+                </span>
+            </div>
+            <p id="validationMessage" class="help is-danger is-hidden">잘못된 형식입니다.</p>
+            <p id="typeDisplay" class="help is-info is-hidden"></p>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            // 유효성 검증 함수 (IP 범위 및 세그먼트 포함)
+            function validateInput(input) {
+                let ipRegex = /^(?:\d{1,3}\.){3}\d{1,3}(?:-(\d{1,3}))?$/;
+
+                // ID 정규식: 영어, 숫자로 이루어진 두 그룹 사이에 .이 하나만 허용됨
+                let idRegex = /^[a-zA-Z0-9]+\.{1}[a-zA-Z0-9]+$/;
+
+                if (ipRegex.test(input)) {
+                    let parts = input.split('-');
+                    let startIP = parts[0].split('.').map(Number);
+                    let endNum = parts.length > 1 ? parseInt(parts[1], 10) : null;
+
+                    // 각 세그먼트가 0~255 범위 안에 있어야 함
+                    if (startIP.some(seg => seg > 255 || seg < 0)) {
+                        return false;
+                    }
+
+                    // 범위가 존재하면 시작 값보다 작으면 안됨
+                    if (endNum !== null && (endNum < startIP[3] || endNum > 255)) {
+                        return false;
+                    }
+                    return parts.length > 1 ? 'IP(범위)' : 'IP(개별)';
+                }
+                // ID 검증 수정: 영어+숫자와 .이 하나만 포함되는 형식
+                else if (idRegex.test(input)) {
+                    return 'ID';
+                }
+                else {
+                    return false;
+                }
+            }
+
+            // 유효성 검사 및 상태 업데이트
+            $('#userInput').on('focusout', function () {
+                let inputVal = $(this).val().trim();
+                let validationResult = validateInput(inputVal);
+
+                if (validationResult) {
+                    $('#userInput').removeClass('is-danger').addClass('is-success');
+                    $('#validationMessage').addClass('is-hidden');
+                    $('#typeDisplay').removeClass('is-hidden').html(`
+                <i class="fa-solid fa-info-circle"></i> 유효한 값입니다. (${validationResult})
+            `);
+
+                    // 아이콘 처리
+                    $('#errorIcon').hide();
+                    $('#successIcon').show();
+                } else {
+                    $('#userInput').removeClass('is-success').addClass('is-danger');
+                    $('#validationMessage').removeClass('is-hidden').text('잘못된 형식입니다. IP 또는 ID를 입력하세요.');
+                    $('#typeDisplay').addClass('is-hidden');
+
+                    // 아이콘 처리
+                    $('#successIcon').hide();
+                    $('#errorIcon').show();
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
