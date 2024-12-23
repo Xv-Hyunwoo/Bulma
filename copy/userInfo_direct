@@ -1,0 +1,84 @@
+<script>
+    // userInfo 객체 생성
+    const userInfo = {
+        userGrade: '<%= nvl(userInfo.userGrade) %>',
+        gnDivNm: '<%= nvl(userInfo.gnDivNm) %>',
+        empState: '<%= nvl(userInfo.empState) %>',
+        name: '<%= nvl(userInfo.name) %>',
+        jikGubCd: '<%= nvl(userInfo.jikGubCd) %>',
+        saBun: '<%= nvl(userInfo.saBun) %>',
+        nSvURL: '<%= nvl(userInfo.nSvURL) %>',
+        lcDivNm: '<%= nvl(userInfo.lcDivNm) %>',
+        waDivNm: '<%= nvl(userInfo.waDivNm) %>',
+        singleID: '<%= nvl(userInfo.singleID) %>',
+        coCd: '<%= nvl(userInfo.coCd) %>',
+        sglID: '<%= nvl(userInfo.sglID) %>',
+        dComp: '<%= nvl(userInfo.dComp) %>',
+        vGroupNm: '<%= nvl(userInfo.vGroupNm) %>',
+        dm: '<%= nvl(userInfo.dm) %>',
+        gnDivCd: '<%= nvl(userInfo.gnDivCd) %>',
+        jikGubNm: '<%= nvl(userInfo.jikGubNm) %>',
+        lcDivCd: '<%= nvl(userInfo.lcDivCd) %>',
+        pDeptNm: '<%= nvl(userInfo.pDeptNm) %>',
+        topSec: '<%= nvl(userInfo.topSec) %>',
+        uniqueID: '<%= nvl(userInfo.uniqueID) %>',
+        pDeptCd: '<%= nvl(userInfo.pDeptCd) %>',
+        coPhone: '<%= nvl(userInfo.coPhone) %>',
+        mAddr: '<%= nvl(userInfo.mAddr) %>',
+        mobile: '<%= nvl(userInfo.mobile) %>',
+        waDivCd: '<%= nvl(userInfo.waDivCd) %>',
+        userLang: '<%= nvl(userInfo.userLang) %>',
+        epPwd: '<%= nvl(userInfo.epPwd) %>',
+        coNm: '<%= nvl(userInfo.coNm) %>'
+    };
+
+    // ssoUserInfo 객체 생성
+    const ssoUserInfo = {
+        ep_loginid: '<%= nvl(ssoUserInfo.ep_loginid) %>',
+        ep_username: '<%= nvl(ssoUserInfo.ep_username) %>',
+        ep_compid: '<%= nvl(ssoUserInfo.ep_compid) %>',
+        ep_compname: '<%= nvl(ssoUserInfo.ep_compname) %>',
+        ep_id: '<%= nvl(ssoUserInfo.ep_id) %>',
+        ep_deptid: '<%= nvl(ssoUserInfo.ep_deptid) %>',
+        ep_username_en: '<%= nvl(ssoUserInfo.ep_username_en) %>',
+        ep_deptname: '<%= nvl(ssoUserInfo.ep_deptname) %>',
+        ep_grdid: '<%= nvl(ssoUserInfo.ep_grdid) %>',
+        ep_grdname: '<%= nvl(ssoUserInfo.ep_grdname) %>',
+        ep_email: '<%= nvl(ssoUserInfo.ep_email) %>',
+        ep_compname_en: '<%= nvl(ssoUserInfo.ep_compname_en) %>',
+        ep_userlocation: '<%= nvl(ssoUserInfo.ep_userlocation) %>',
+        ep_regid: '<%= nvl(ssoUserInfo.ep_regid) %>',
+        ep_regname: '<%= nvl(ssoUserInfo.ep_regname) %>',
+        ep_sabun: '<%= nvl(ssoUserInfo.ep_sabun) %>',
+        ep_locale: '<%= nvl(ssoUserInfo.ep_locale) %>',
+        ep_comptel: '<%= nvl(ssoUserInfo.ep_comptel) %>',
+        ep_sorgid: '<%= nvl(ssoUserInfo.ep_sorgid) %>',
+        ep_deptname_en: '<%= nvl(ssoUserInfo.ep_deptname_en) %>',
+        ep_sorgname: '<%= nvl(ssoUserInfo.ep_sorgname) %>',
+        ep_grdname_en: '<%= nvl(ssoUserInfo.ep_grdname_en) %>',
+        ep_timezone: '<%= nvl(ssoUserInfo.ep_timezone) %>'
+    };
+
+    // AJAX 요청 함수
+    function sendData() {
+        const data = {
+            userInfo: userInfo,
+            ssoUserInfo: ssoUserInfo
+        };
+
+        fetch('/api/sendData', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(result => {
+            console.log('Success:', result);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+</script>
