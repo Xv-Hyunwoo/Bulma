@@ -1,0 +1,92 @@
+<%@ page import="java.util.HashMap" %>
+<%@ page import="com.example.UserInfo, com.example.SsoUserInfo" %>
+
+<%
+    // 세션에서 UserInfo, SsoUserInfo 가져오기 (예시)
+    UserInfo userInfo = (UserInfo) session.getAttribute("userInfo");
+    SsoUserInfo ssoUserInfo = (SsoUserInfo) session.getAttribute("ssoUserInfo");
+
+    // 값이 없을 경우 null 방지
+    if (userInfo == null) {
+        userInfo = new UserInfo();
+    }
+    if (ssoUserInfo == null) {
+        ssoUserInfo = new SsoUserInfo();
+    }
+%>
+
+<script>
+    // userInfo JSON 객체 생성
+    const userInfo = {
+        userGrade: '<%= userInfo.getUserGrade() %>',
+        gnDivNm: '<%= userInfo.getGnDivNm() %>',
+        empState: '<%= userInfo.getEmpState() %>',
+        name: '<%= userInfo.getName() %>',
+        jikGubCd: '<%= userInfo.getJikGubCd() %>',
+        saBun: '<%= userInfo.getSaBun() %>',
+        nSvURL: '<%= userInfo.getNSvURL() %>',
+        lcDivNm: '<%= userInfo.getLcDivNm() %>',
+        waDivNm: '<%= userInfo.getWaDivNm() %>',
+        singleID: '<%= userInfo.getSingleID() %>',
+        coCd: '<%= userInfo.getCoCd() %>',
+        sglID: '<%= userInfo.getSglID() %>',
+        dComp: '<%= userInfo.getDComp() %>',
+        vGroupNm: '<%= userInfo.getVGroupNm() %>',
+        dm: '<%= userInfo.getDm() %>',
+        gnDivCd: '<%= userInfo.getGnDivCd() %>',
+        jikGubNm: '<%= userInfo.getJikGubNm() %>',
+        lcDivCd: '<%= userInfo.getLcDivCd() %>',
+        pDeptNm: '<%= userInfo.getPDeptNm() %>',
+        topSec: '<%= userInfo.getTopSec() %>',
+        uniqueID: '<%= userInfo.getUniqueID() %>',
+        pDeptCd: '<%= userInfo.getPDeptCd() %>',
+        coPhone: '<%= userInfo.getCoPhone() %>',
+        mAddr: '<%= userInfo.getMAddr() %>',
+        mobile: '<%= userInfo.getMobile() %>',
+        waDivCd: '<%= userInfo.getWaDivCd() %>',
+        userLang: '<%= userInfo.getUserLang() %>',
+        epPwd: '<%= userInfo.getEpPwd() %>',
+        coNm: '<%= userInfo.getCoNm() %>'
+    };
+
+    // ssoUserInfo JSON 객체 생성
+    const ssoUserInfo = {
+        ep_loginid: '<%= ssoUserInfo.getEpLoginid() %>',
+        ep_username: '<%= ssoUserInfo.getEpUsername() %>',
+        ep_compid: '<%= ssoUserInfo.getEpCompid() %>',
+        ep_compname: '<%= ssoUserInfo.getEpCompname() %>',
+        ep_id: '<%= ssoUserInfo.getEpId() %>',
+        ep_deptid: '<%= ssoUserInfo.getEpDeptid() %>',
+        ep_username_en: '<%= ssoUserInfo.getEpUsernameEn() %>',
+        ep_deptname: '<%= ssoUserInfo.getEpDeptname() %>',
+        ep_grdid: '<%= ssoUserInfo.getEpGrdid() %>',
+        ep_grdname: '<%= ssoUserInfo.getEpGrdname() %>',
+        ep_email: '<%= ssoUserInfo.getEpEmail() %>',
+        ep_compname_en: '<%= ssoUserInfo.getEpCompnameEn() %>',
+        ep_sabun: '<%= ssoUserInfo.getEpSabun() %>',
+        ep_locale: '<%= ssoUserInfo.getEpLocale() %>',
+    };
+
+    // AJAX 요청 (JSON 데이터 전송)
+    function sendData() {
+        const data = {
+            userInfo: userInfo,
+            ssoUserInfo: ssoUserInfo
+        };
+
+        fetch('/api/sendData', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(result => {
+            console.log('Success:', result);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+</script>
