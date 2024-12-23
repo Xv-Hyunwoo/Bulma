@@ -1,0 +1,59 @@
+  String uGetSingleID = userInfo.getSingleID();
+
+  String uGetLogIn = Boolean.toString(userInfo.getLogIn());
+
+  String uGetUserLang = userInfo.getUserLang();
+
+  String uGetUserGrade = userInfo.getUserGrade();
+
+  String uGetGnDivNm = userInfo.getGnDivNm();
+
+  String uGetempState = userInfo.getempState();
+
+  String uGetName = userInfo.getName();
+
+  String uGetJikGubCd = userInfo.getJikGubCd();
+
+  String uGetSaBun = userInfo.getSaBun();
+
+  String uGetmSvURL = userInfo.getmSvURL();
+
+  String uGetLcDivNm = userInfo.getLcDivNm();
+
+  String uGetWaDivNm = userInfo.getWaDivNm();
+
+  String uGetCoCd = userInfo.getCoCd();
+
+  String uGetSglID = userInfo.getSglID();
+
+  String uGetDComp = userInfo.getDComp();
+
+  String uGetVGroupNm = userInfo.getVGroupNm();
+
+  String uGetDm = userInfo.getDm();
+
+  String uGetGnDivCd = userInfo.getGnDivCd();
+
+  String uGetJikGubNm = userInfo.getJikGubNm();
+
+  String uGetLcDivCd = userInfo.getLcDivCd();
+
+  String uGetPDeptNm = userInfo.getPDeptNm();
+
+  String uGetTopSec = userInfo.getTopSec();
+
+  String uGetUniqueID = userInfo.getUniqueID();
+
+  String uGetPDeptCd = userInfo.getPDeptCd();
+
+  String uGetCoPhone = userInfo.getCoPhone();
+
+  String uGetMAddr = userInfo.getMAddr();
+
+  String uGetMobile = userInfo.getMobile();
+
+  String uGetWaDivCd = userInfo.getWaDivCd();
+
+  String uGetEpPwd = userInfo.getEpPwd();
+
+  String uGetCoNm = userInfo.getCoNm();
