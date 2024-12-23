@@ -1,0 +1,92 @@
+<%! 
+    // null 값을 빈 문자열로 변환하는 함수
+    public String nvl(String str) {
+        return (str != null) ? str : "";
+    }
+%>
+
+
+<script>
+    // userInfo 객체 생성
+    const userInfo = {
+        userGrade: '<%= nvl(userInfo.getUserGrade()) %>',
+        gnDivNm: '<%= nvl(userInfo.getGnDivNm()) %>',
+        empState: '<%= nvl(userInfo.getEmpState()) %>',
+        name: '<%= nvl(userInfo.getName()) %>',
+        jikGubCd: '<%= nvl(userInfo.getJikGubCd()) %>',
+        saBun: '<%= nvl(userInfo.getSaBun()) %>',
+        nSvURL: '<%= nvl(userInfo.getNSvURL()) %>',
+        lcDivNm: '<%= nvl(userInfo.getLcDivNm()) %>',
+        waDivNm: '<%= nvl(userInfo.getWaDivNm()) %>',
+        singleID: '<%= nvl(userInfo.getSingleID()) %>',
+        coCd: '<%= nvl(userInfo.getCoCd()) %>',
+        sglID: '<%= nvl(userInfo.getSglID()) %>',
+        dComp: '<%= nvl(userInfo.getDComp()) %>',
+        vGroupNm: '<%= nvl(userInfo.getVGroupNm()) %>',
+        dm: '<%= nvl(userInfo.getDm()) %>',
+        gnDivCd: '<%= nvl(userInfo.getGnDivCd()) %>',
+        jikGubNm: '<%= nvl(userInfo.getJikGubNm()) %>',
+        lcDivCd: '<%= nvl(userInfo.getLcDivCd()) %>',
+        pDeptNm: '<%= nvl(userInfo.getPDeptNm()) %>',
+        topSec: '<%= nvl(userInfo.getTopSec()) %>',
+        uniqueID: '<%= nvl(userInfo.getUniqueID()) %>',
+        pDeptCd: '<%= nvl(userInfo.getPDeptCd()) %>',
+        coPhone: '<%= nvl(userInfo.getCoPhone()) %>',
+        mAddr: '<%= nvl(userInfo.getMAddr()) %>',
+        mobile: '<%= nvl(userInfo.getMobile()) %>',
+        waDivCd: '<%= nvl(userInfo.getWaDivCd()) %>',
+        userLang: '<%= nvl(userInfo.getUserLang()) %>',
+        epPwd: '<%= nvl(userInfo.getEpPwd()) %>',
+        coNm: '<%= nvl(userInfo.getCoNm()) %>'
+    };
+
+    // ssoUserInfo 객체 생성
+    const ssoUserInfo = {
+        ep_loginid: '<%= nvl(ssoUserInfo.getEpLoginid()) %>',
+        ep_username: '<%= nvl(ssoUserInfo.getEpUsername()) %>',
+        ep_compid: '<%= nvl(ssoUserInfo.getEpCompid()) %>',
+        ep_compname: '<%= nvl(ssoUserInfo.getEpCompname()) %>',
+        ep_id: '<%= nvl(ssoUserInfo.getEpId()) %>',
+        ep_deptid: '<%= nvl(ssoUserInfo.getEpDeptid()) %>',
+        ep_username_en: '<%= nvl(ssoUserInfo.getEpUsernameEn()) %>',
+        ep_deptname: '<%= nvl(ssoUserInfo.getEpDeptname()) %>',
+        ep_grdid: '<%= nvl(ssoUserInfo.getEpGrdid()) %>',
+        ep_grdname: '<%= nvl(ssoUserInfo.getEpGrdname()) %>',
+        ep_email: '<%= nvl(ssoUserInfo.getEpEmail()) %>',
+        ep_compname_en: '<%= nvl(ssoUserInfo.getEpCompnameEn()) %>',
+        ep_userlocation: '<%= nvl(ssoUserInfo.getEpUserlocation()) %>',
+        ep_regid: '<%= nvl(ssoUserInfo.getEpRegid()) %>',
+        ep_regname: '<%= nvl(ssoUserInfo.getEpRegname()) %>',
+        ep_sabun: '<%= nvl(ssoUserInfo.getEpSabun()) %>',
+        ep_locale: '<%= nvl(ssoUserInfo.getEpLocale()) %>',
+        ep_comptel: '<%= nvl(ssoUserInfo.getEpComptel()) %>',
+        ep_sorgid: '<%= nvl(ssoUserInfo.getEpSorgid()) %>',
+        ep_deptname_en: '<%= nvl(ssoUserInfo.getEpDeptnameEn()) %>',
+        ep_sorgname: '<%= nvl(ssoUserInfo.getEpSorgname()) %>',
+        ep_grdname_en: '<%= nvl(ssoUserInfo.getEpGrdnameEn()) %>',
+        ep_timezone: '<%= nvl(ssoUserInfo.getEpTimezone()) %>'
+    };
+
+    // AJAX 요청 함수
+    function sendData() {
+        const data = {
+            userInfo: userInfo,
+            ssoUserInfo: ssoUserInfo
+        };
+
+        fetch('/api/sendData', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(result => {
+            console.log('Success:', result);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+</script>
