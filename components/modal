@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>검색 페이지</title>
+    <!-- Bulma CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        .table-container {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <!-- Main Page Search Section -->
+    <div class="field has-addons">
+        <div class="control">
+            <div class="select is-small">
+                <select id="mainSearchField">
+                    <option value="uid">Knox ID</option>
+                    <option value="cn">사용자명</option>
+                </select>
+            </div>
+        </div>
+        <div class="control is-expanded">
+            <input class="input is-small" type="text" placeholder="검색어를 입력하세요" id="mainSearchInput">
+        </div>
+        <div class="control">
+            <button class="button is-primary is-small" id="mainSearchButton">검색</button>
+        </div>
+    </div>
+
+    <!-- Modal Trigger Button -->
+    <button class="button is-primary is-small" id="openModal">모달 열기</button>
+
+    <!-- Modal Structure -->
+    <div class="modal" id="searchModal">
+        <div class="modal-background"></div>
+        <div class="modal-card">
+            <header class="modal-card-head">
+                <p class="modal-card-title">검색</p>
+                <button class="delete is-small" aria-label="close" id="closeModal"></button>
+            </header>
+            <section class="modal-card-body">
+                <!-- Modal Search Inputs -->
+                <div class="field has-addons">
+                    <div class="control">
+                        <div class="select is-small">
+                            <select id="modalSearchField">
+                                <option value="uid">Knox ID</option>
+                                <option value="cn">사용자명</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="control is-expanded">
+                        <input class="input is-small" type="text" placeholder="검색어를 입력하세요" id="modalSearchInput">
+                    </div>
+                    <div class="control">
+                        <button class="button is-info is-small" id="modalSearchButton">
+                            <span class="icon is-small">
+                                <i class="fas fa-search"></i>
+                            </span>
+                        </button>
+                    </div>
+                </div>
+                <!-- Results Table -->
+                <div class="table-container">
+                    <table class="table is-fullwidth is-hoverable is-small">
+                        <thead>
+                            <tr>
+                                <th>이름</th>
+                                <th>사용자 ID</th>
+                                <th>부서명</th>
+                                <th>회사</th>
+                                <th>이메일</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resultTable">
+                            <!-- Results will be injected here -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            <footer class="modal-card-foot">
+                <button class="button is-small" id="closeModalFooter">닫기</button>
+            </footer>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        $(document).ready(function() {
+            // Open Modal
+            $('#openModal').click(function() {
+                $('#searchModal').addClass('is-active');
+                // Sync modal inputs with main page inputs
+                $('#modalSearchField').val($('#mainSearchField').val());
+                $('#modalSearchInput').val($('#mainSearchInput').val());
+                // Fetch data based on current inputs
+                fetchData();
+            });
+
+            // Close Modal
+            $('#closeModal, #closeModalFooter, .modal-background').click(function() {
+                $('#searchModal').removeClass('is-active');
+            });
+
+            // Main Page Search Button Click
+            $('#mainSearchButton').click(function() {
+                fetchData();
+            });
+
+            // Modal Search Button Click
+            $('#modalSearchButton').click(function() {
+                fetchData();
+            });
+
+            // Fetch Data Function
+            function fetchData() {
+                // Determine the context (main page or modal)
+                const isModal = $('#searchModal').hasClass('is-active');
+                const searchField = isModal ? $('#modalSearchField').val() : $('#mainSearchField').val();
+                const searchVal = isModal ? $('#modalSearchInput').val() : $('#mainSearchInput').val();
+
+                // Data to send to the server
+                const data = {
+                    langCd: 'ko',
+                    userId: 'exampleUser',
+                    userInfo: 'exampleInfo',
+                    cmd: 'search',
+                    searchField: searchField,
+                    searchVal: searchVal,
+                    ipInfo: '192.168.0.1',
+                    apprGbn: 'A'
+                };
+
+                // Mock response (replace with actual server call)
+                const mockResponse = {
+                    fwListKr: [
+                        { name: '홍길동', uid: 'hong123', department: '개발팀', orgName: 'ABC회사', userMail: 'hong@example 
