@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>멀티 셀렉트 박스</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.4/css/bulma.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <style>
+        #selectedItems {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 300px;
+            display: inline-block;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container mt-5">
+        <div class="box">
+            <div class="dropdown" id="multiSelectDropdown">
+                <div class="dropdown-trigger">
+                    <button class="button" aria-haspopup="true" aria-controls="dropdown-menu">
+                        <span id="selectedItems" title="Select items">Select items</span>
+                        <span class="icon is-small">
+                            <i class="fas fa-angle-down"></i>
+                        </span>
+                    </button>
+                </div>
+                <div class="dropdown-menu" id="dropdown-menu" role="menu">
+                    <div class="dropdown-content" id="dropdownItems">
+                        <!-- 체크박스 목록 삽입 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 목업 데이터 생성
+        const openArea = [
+            { code: '001', name: 'Seoul' },
+            { code: '002', name: 'Busan' },
+            { code: '003', name: 'Incheon' },
+            { code: '004', name: 'Daegu' },
+            { code: '005', name: 'Daejeon' },
+            { code: '006', name: 'Gwangju' },
+            { code: '007', name: 'Jeju' },
+            { code: '008', name: 'Ulsan' },
+            { code: '009', name: 'Suwon' },
+            { code: '010', name: 'Gyeongju' }
+        ];
+
+        // 체크박스 목록 생성
+        $(document).ready(function () {
+            let dropdownContent = $('#dropdownItems');
+
+            // ⭐ 전체 선택 체크박스 추가 (목록 최상단)
+            dropdownContent.append(`
+                <label class="dropdown-item">
+                    <input type="checkbox" id="selectAllCheckbox"> 전체 선택
+                </label>
+            `);
+
+            // 동적으로 지역 옵션 추가
+            openArea.forEach(item => {
+                dropdownContent.append(`
+                    <label class="dropdown-item">
+                        <input type="checkbox" class="area-checkbox" value="${item.code}" data-name="${item.name}">
+                        ${item.name}
+                    </label>
+                `);
+            });
+
+            // 드롭다운 토글
+            $('#multiSelectDropdown .dropdown-trigger button').on('click', function () {
+                $('#multiSelectDropdown').toggleClass('is-active');
+            });
+
+            // ⭐ 전체 선택 기능 추가
+            $('#selectAllCheckbox').on('change', function () {
+                const isChecked = $(this).is(':checked');
+                $('.area-checkbox').prop('checked', isChecked).trigger('change');
+            });
+
+            // 개별 체크박스 선택
+            $('.area-checkbox').on('change', function () {
+                let selected = [];
+                $('.area-checkbox:checked').each(function () {
+                    selected.push($(this).data('name'));
+                });
+
+                // 툴팁으로 전체 항목 보여주기
+                if (selected.length > 0) {
+                    $('#selectedItems').text(selected.join(', ')).attr('title', selected.join(', '));
+                } else {
+                    $('#selectedItems').text('Select items').attr('title', 'Select items');
+                }
+
+                // ⭐ 개별 항목 해제 시 "전체" 체크 해제
+                if ($('.area-checkbox:checked').length !== $('.area-checkbox').length) {
+                    $('#selectAllCheckbox').prop('checked', false);
+                } else {
+                    $('#selectAllCheckbox').prop('checked', true);
+                }
+            });
+
+            // 드롭다운 외부 클릭시 닫기
+            $(document).click(function (e) {
+                if (!$(e.target).closest('#multiSelectDropdown').length) {
+                    $('#multiSelectDropdown').removeClass('is-active');
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
