@@ -1,0 +1,115 @@
+<%
+    // userInfo 객체의 데이터 가져오기 (getter 메서드 사용)
+    String userGrade = userInfo.getUserGrade();
+    String gnDivNm = userInfo.getGnDivNm();
+    String empState = userInfo.getEmpState();
+    String name = userInfo.getName();
+    String jikGubCd = userInfo.getJikGubCd();
+    String saBun = userInfo.getSaBun();
+    String nSvURL = userInfo.getNSvURL();
+    String lcDivNm = userInfo.getLcDivNm();
+    String waDivNm = userInfo.getWaDivNm();
+    String singleID = userInfo.getSingleID();
+    String coCd = userInfo.getCoCd();
+    String sglID = userInfo.getSglID();
+    String dComp = userInfo.getDComp();
+    String vGroupNm = userInfo.getVGroupNm();
+    String dm = userInfo.getDm();
+    String gnDivCd = userInfo.getGnDivCd();
+    String jikGubNm = userInfo.getJikGubNm();
+    String lcDivCd = userInfo.getLcDivCd();
+    String pDeptNm = userInfo.getPDeptNm();
+    String topSec = userInfo.getTopSec();
+    String uniqueID = userInfo.getUniqueID();
+    String pDeptCd = userInfo.getPDeptCd();
+    String coPhone = userInfo.getCoPhone();
+    String mAddr = userInfo.getMAddr();
+    String mobile = userInfo.getMobile();
+    String waDivCd = userInfo.getWaDivCd();
+    String userLang = userInfo.getUserLang();
+    String epPwd = userInfo.getEpPwd();
+    String coNm = userInfo.getCoNm();
+
+    // ssoUserInfo 객체의 데이터 가져오기 (필드 직접 접근)
+    String ep_loginid = ssoUserInfo.ep_loginid;
+    String ep_username = ssoUserInfo.ep_username;
+    String ep_compid = ssoUserInfo.ep_compid;
+    String ep_compname = ssoUserInfo.ep_compname;
+    String ep_id = ssoUserInfo.ep_id;
+    String ep_deptid = ssoUserInfo.ep_deptid;
+    String ep_username_en = ssoUserInfo.ep_username_en;
+    String ep_deptname = ssoUserInfo.ep_deptname;
+    String ep_grdid = ssoUserInfo.ep_grdid;
+    String ep_grdname = ssoUserInfo.ep_grdname;
+    String ep_email = ssoUserInfo.ep_email;
+    String ep_compname_en = ssoUserInfo.ep_compname_en;
+    String ep_userlocation = ssoUserInfo.ep_userlocation;
+    String ep_regid = ssoUserInfo.ep_regid;
+    String ep_regname = ssoUserInfo.ep_regname;
+    String ep_sabun = ssoUserInfo.ep_sabun;
+    String ep_locale = ssoUserInfo.ep_locale;
+    String ep_comptel = ssoUserInfo.ep_comptel;
+    String ep_sorgid = ssoUserInfo.ep_sorgid;
+    String ep_deptname_en = ssoUserInfo.ep_deptname_en;
+    String ep_sorgname = ssoUserInfo.ep_sorgname;
+    String ep_grdname_en = ssoUserInfo.ep_grdname_en;
+    String ep_timezone = ssoUserInfo.ep_timezone;
+%>
+
+<script>
+    // userInfo 객체의 데이터 할당
+    var userInfo = {
+        userGrade: '<%= userGrade %>',
+        gnDivNm: '<%= gnDivNm %>',
+        empState: '<%= empState %>',
+        name: '<%= name %>',
+        jikGubCd: '<%= jikGubCd %>',
+        saBun: '<%= saBun %>',
+        nSvURL: '<%= nSvURL %>',
+        lcDivNm: '<%= lcDivNm %>',
+        waDivNm: '<%= waDivNm %>',
+        singleID: '<%= singleID %>',
+        coCd: '<%= coCd %>',
+        sglID: '<%= sglID %>',
+        dComp: '<%= dComp %>',
+        vGroupNm: '<%= vGroupNm %>',
+        dm: '<%= dm %>',
+        gnDivCd: '<%= gnDivCd %>',
+        jikGubNm: '<%= jikGubNm %>',
+        lcDivCd: '<%= lcDivCd %>',
+        pDeptNm: '<%= pDeptNm %>',
+        topSec: '<%= topSec %>',
+        uniqueID: '<%= uniqueID %>',
+        pDeptCd: '<%= pDeptCd %>',
+        coPhone: '<%= coPhone %>',
+        mAddr: '<%= mAddr %>',
+        mobile: '<%= mobile %>',
+        waDivCd: '<%= waDivCd %>',
+        userLang: '<%= userLang %>',
+        epPwd: '<%= epPwd %>',
+        coNm: '<%= coNm %>'
+    };
+
+    // ssoUserInfo 객체의 데이터 할당
+    var ssoUserInfo = {
+        ep_loginid: '<%= ep_loginid %>',
+        ep_username: '<%= ep_username %>',
+        ep_compid: '<%= ep_compid %>',
+        ep_compname: '<%= ep_compname %>',
+        ep_id: '<%= ep_id %>',
+        ep_deptid: '<%= ep_deptid %>',
+        ep_username_en: '<%= ep_username_en %>',
+        ep_deptname: '<%= ep_deptname %>',
+        ep_grdid: '<%= ep_grdid %>',
+        ep_grdname: '<%= ep_grdname %>',
+        ep_email: '<%= ep_email %>',
+        ep_compname_en: '<%= ep_compname_en %>',
+        ep_userlocation: '<%= ep_userlocation %>',
+        ep_regid: '<%= ep_regid %>',
+        ep_regname: '<%= ep_regname %>',
+        ep_sabun: '<%= ep_sabun %>',
+        ep_locale: '<%= ep_locale %>',
+        ep_comptel: '<%= ep_comptel %>',
+        ep_sorgid: '<%= ep_sorgid %>',
+        ep_deptname_en: '<%= ep_deptname_en %>',
+        ep_sorgname: '<%= ep 
