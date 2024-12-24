@@ -1,0 +1,154 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>임직원 조회</title>
+    <!-- Bulma CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <style>
+        .search-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .table-container {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .page-container {
+            max-width: 900px;
+            margin: 50px auto;
+            border: 1px solid #ddd;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        .modal-card-head {
+            background-color: #3273dc;
+            color: white;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .modal-card-foot {
+            border-top: 1px solid #ddd;
+            border-radius: 0 0 8px 8px;
+            padding: 1rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="page-container">
+    <header class="modal-card-head">
+        <p class="modal-card-title is-size-5">임직원 조회</p>
+    </header>
+
+    <section class="modal-card-body">
+        <!-- 검색 필드 및 입력창 -->
+        <div class="field has-addons search-container mt-4">
+            <div class="control">
+                <div class="select is-small">
+                    <select id="modalSearchField">
+                        <option value="uid">Knox ID</option>
+                        <option value="cn">사용자명</option>
+                    </select>
+                </div>
+            </div>
+            <div class="control is-expanded">
+                <input class="input is-small" type="text" placeholder="검색어를 입력하세요" id="modalSearchInput">
+            </div>
+            <div class="control">
+                <button class="button is-link is-small" id="modalSearchButton">
+                    <span class="icon is-small">
+                        <i class="fas fa-search"></i>
+                    </span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 테이블 결과 -->
+        <div class="table-container mt-4">
+            <table class="table is-fullwidth is-hoverable is-small">
+                <thead>
+                    <tr class="is-vcentered has-text-centered is-size-7">
+                        <th>이름</th>
+                        <th>사용자 ID</th>
+                        <th>부서명</th>
+                        <th>회사</th>
+                        <th>이메일</th>
+                    </tr>
+                </thead>
+                <tbody id="resultTable">
+                    <!-- Ajax 결과 데이터 삽입 -->
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <footer class="modal-card-foot is-justify-content-end">
+        <button class="button is-small is-pulled-right" onclick="window.close();">닫기</button>
+    </footer>
+</div>
+
+<script>
+  $(document).ready(function () {
+    // 검색 버튼 클릭 이벤트
+    $('#modalSearchButton').click(function () {
+      searchKnoxUser();
+    });
+
+    // Knox 사용자 조회 Ajax 호출
+    function searchKnoxUser() {
+      let searchValue = $('#modalSearchInput').val();
+      const requestData = {
+        "langCd": "<%= uGetUserLang %>",
+        "userId": "<%= uGetSingleID %>",
+        "cmd": "USR",
+        "apprGbn": "",
+        "searchFlag": "",
+        "searchField": $('#modalSearchField').val(),
+        "searchVal": searchValue,
+        "ipInfo": "IP",
+        "userInfo": userInfoParam,
+      };
+
+      $.ajax({
+        url: "http://10.199.20.5:8090/itvoc/it4u/api/firewall/fwUserSearch.jsp",
+        type: "POST",
+        contentType: "application/json",
+        data: JSON.stringify(requestData),
+        success: function (response) {
+          displayResults(response);
+        },
+        error: function (xhr, status, error) {
+          console.log("Error", status, error);
+        }
+      });
+    }
+
+    // 테이블에 결과 표시
+    function displayResults(results) {
+      const $resultTable = $('#resultTable');
+      $resultTable.empty();  // 기존 데이터 초기화
+
+      results.forEach(result => {
+        const $row = $('<tr>');
+        $row.append($('<td>').text(result.name));
+        $row.append($('<td>').text(result.uid));
+        $row.append($('<td>').text(result.department));
+        $row.append($('<td>').text(result.orgName));
+        $row.append($('<td>').text(result.userMail));
+        $resultTable.append($row);
+      });
+    }
+  });
+</script>
+
+</body>
+</html>
