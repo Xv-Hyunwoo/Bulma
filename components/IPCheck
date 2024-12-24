@@ -1,0 +1,35 @@
+    function IpYNCheck(gbn){
+    	var cip = "<%=request.getRemoteAddr() %>";
+    	
+    	$.ajax({
+	    	type: "GET",
+	    	url: "/itvoc/it4u/firewall/fwReqId_min_fvl.jsp", 
+	    	cache: false, // cache가 true일 때 Ajax 서버 프로그램(.jsp)을 변경해도 반영되지 않는 이슈가 있어 false로 설정한다.
+	    	dataType : "json",	
+	    	data: {
+	    		CMD     : "FW_COMPART_ID_YN_LIST",
+	    		CIP		: cip
+	    	},
+	    	async: false, // 비동기 방식으로 ajax 응답을 받을 경우 프로세스상 문제가 발생하여 [async : false] 방식으로 처리한다. 
+	    	success: function(data) {
+	    		if(gbn == "S"){
+            // 신청 불가
+		    			if(data[0].SRC_YN == "N"){
+            
+		    	  var toastParams = { msgType : "is-danger", msgPosition : "top-center", msgContent :'ID 신청이 불가한 IP입니다.', };
+				    renderToast(toastParams); 
+            return false;
+				    	}
+              // 신청 가능
+              return true;
+	    		}
+         
+	    	},
+	    	error:function(request,status,error){        
+	    		console.log(error); 
+		    	var toastParams = { msgType : "is-danger", msgPosition : "top-center", msgContent :'<%=getPro.getProperty("FWL1300082_",languageCodeForConversion)%>\n<%=getPro.getProperty("FWL2202004_",languageCodeForConversion)%>', };
+				renderToast(toastParams); 
+	        	return false;
+	    	}
+	    });
+    }
