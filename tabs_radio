@@ -1,0 +1,125 @@
+           
+           <html>
+           <td colspan="5" class="is-vcentered has-text-centered">
+              <!--  출발지 IP/ID -->
+              <div class="field is-horizontal tabs-container" id="source-tabs-container">
+
+                <div class="tabs is-small is-toggle mb-0">
+                  <ul id="sourceTypeUl">
+                  </ul>
+                </div>
+
+
+                <div class="tab-content">
+
+                  <!-- 출발지 개별 Input -->
+                  <div class="has-text-left" id="FWTUInput">
+                    <div class="field has-addons mb-0 mt-4">
+                    <div class="control has-icons-right">
+                      <input type="text" class="input is-small width-220 ml-3" id="userInput" />
+                <span class="icon is-small is-right validation-icon is-vcentered" id="successIcon" style="display:none;">
+                    <i class="fa fa-fw fa-solid fa-check-circle has-text-success"></i>
+                </span>
+                <span class="icon is-small is-right validation-icon is-vcentered" id="errorIcon" style="display:none;">
+                    <i class="fa fa-fw fa-solid fa-exclamation-circle has-text-danger"></i>
+                </span>
+
+                    </div>
+                      <input type="text" class="input is-small width-100 ml-2" placeholder="실사용자" />
+
+                      <button class="button is-small is-link ml-2">
+                        <i class="fa fa-fw fa-solid fa-search"></i>
+                        <%-- <%=getPro.getProperty("FWL0100057_",languageCodeForConversion)%> --%>
+                      </button>
+                    </div>
+
+                    <span class="has-text-grey-light is-size-7 ml-3 mt-1">
+
+                      입력 예) IP: 000.000.000.000(개별), 000.000.000.001-010(범위), ID: sayho.park
+                    </span>
+                  </div>
+                  <!-- 출발지 그룹 Input -->
+                  <div class="has-text-left" id="FWTGInput" style="display: none;">
+                    <div class="field has-addons mb-0 mt-4">
+                      <input type="text" class="input is-small width-220 ml-3" />
+
+                      <button class="button is-small is-link ml-2">
+                        <i class="fa fa-fw fa-solid fa-search"></i>
+                      </button>
+                    </div>
+                    <span class="has-text-grey-light is-size-7 ml-3 mt-1" style="visibility: hidden;">placehold</span>
+                  </div>
+
+                  <!-- 출발지 전사오픈 Input -->
+                  <div class="has-text-left" id="FWTAInput" style="display: none;">    
+                      <div class="field has-addons mb-0 mt-4">
+                            <div class="dropdown ml-3" id="multiSelectDropdown">
+                                <div class="dropdown-trigger">
+                                    <button class="button is-small" aria-haspopup="true" aria-controls="dropdown-menu">
+                                        <span id="selectedItems" title="전사 선택">전사 선택</span>
+                                        <span class="icon is-small">
+                                            <i class="fas fa-angle-down"></i>
+                                        </span>
+                                    </button>
+                                </div>
+                                <div class="dropdown-menu" id="dropdown-menu" role="menu">
+                                    <div class="dropdown-content" id="dropdownItems">
+                                        <!-- 체크박스 목록 삽입 -->
+                                    </div>
+                                </div>
+                            </div>
+                      </div>
+                   <span class="has-text-grey-light is-size-7 ml-3 mt-1" style="visibility: hidden;">placehold</span>
+
+              </div>
+      </div>
+
+
+      </td>
+      
+      
+      
+      
+      
+      
+      
+      <script>
+      
+      
+           $('.tabs ul').on("click","li", switchTabs);
+      
+            function switchTabs(e) {
+
+        e.preventDefault();
+
+        const container = $(this).closest('.tabs-container');
+        const type = $(this).data('type');
+        console.log('type',type)
+
+        // 도착지 그룹일때 포트 관련 입력창 숨김
+        if (type === "FWSG") {
+          $('#destinationPortInfo').hide();
+        } else if (type === "FWSU") {
+          $('#destinationPortInfo').show();
+        }
+
+        // URL 안내 문구 노출
+        if (type === "FWSU") {
+          $('#urlInfoText').show();
+        } else if (type === "FWSG") {
+          $('#urlInfoText').hide();
+        }
+
+        // Tabs active 상태 변경
+        container.find('.tabs ul li').removeClass('is-active');
+        $(this).addClass('is-active');
+
+        // 도착지/출발지 유형에 맞는 Input창 노출
+        container.find('.tab-content > div').hide();
+        container.find('#' + type + 'Input').show();
+      }
+      
+      
+      </script>
+      
+      </html>
