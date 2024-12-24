@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>출발지 탭</title>
+    <!-- Bulma CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        .width-220 { width: 220px; }
+        .width-100 { width: 100px; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<!-- 출발지 IP/ID -->
+<td colspan="5" class="is-vcentered has-text-centered">
+    <div class="field is-horizontal tabs-container" id="source-tabs-container">
+        <div class="tabs is-small is-toggle mb-0">
+            <ul id="sourceTypeUl">
+                <li class="is-active" data-type="FWTU"><a>개별</a></li>
+                <li data-type="FWTG"><a>그룹</a></li>
+                <li data-type="FWTA"><a>전사</a></li>
+            </ul>
+        </div>
+
+        <div class="tab-content">
+            <!-- 개별 Input -->
+            <div class="has-text-left" id="FWTUInput">
+                <div class="field is-grouped mb-0 mt-4">
+                    <div class="control">
+                        <label class="radio">
+                            <input type="radio" name="sourceType" value="IP" checked> IP
+                        </label>
+                        <label class="radio">
+                            <input type="radio" name="sourceType" value="ID"> ID
+                        </label>
+                    </div>
+                </div>
+
+                <div class="field has-addons mt-3" id="ipInputSection">
+                    <div class="control has-icons-right">
+                        <input type="text" class="input is-small width-220 ml-3" id="userInput" placeholder="IP 입력" />
+                        <span class="icon is-small is-right validation-icon" id="successIcon" style="display:none;">
+                            <i class="fa fa-check-circle has-text-success"></i>
+                        </span>
+                        <span class="icon is-small is-right validation-icon" id="errorIcon" style="display:none;">
+                            <i class="fa fa-exclamation-circle has-text-danger"></i>
+                        </span>
+                    </div>
+                    <input type="text" class="input is-small width-100 ml-2" placeholder="실사용자" />
+                    <button class="button is-small is-link ml-2">
+                        <i class="fa fa-search"></i>
+                    </button>
+                </div>
+
+                <div class="field has-addons mt-3 hidden" id="idInputSection">
+                    <input type="text" class="input is-small width-220 ml-3" placeholder="ID 입력" />
+                    <button class="button is-small is-link ml-2">
+                        <i class="fa fa-search"></i>
+                    </button>
+                </div>
+
+                <span class="has-text-grey-light is-size-7 ml-3 mt-1">
+                    입력 예) IP: 000.000.000.000, ID: sayho.park
+                </span>
+            </div>
+
+            <!-- 그룹 Input -->
+            <div class="has-text-left hidden" id="FWTGInput">
+                <div class="field has-addons mb-0 mt-4">
+                    <input type="text" class="input is-small width-220 ml-3" placeholder="그룹 입력" />
+                    <button class="button is-small is-link ml-2">
+                        <i class="fa fa-search"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 전사 Input -->
+            <div class="has-text-left hidden" id="FWTAInput">
+                <div class="field has-addons mb-0 mt-4">
+                    <div class="dropdown ml-3" id="multiSelectDropdown">
+                        <div class="dropdown-trigger">
+                            <button class="button is-small">
+                                <span id="selectedItems">전사 선택</span>
+                                <span class="icon is-small">
+                                    <i class="fas fa-angle-down"></i>
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</td>
+
+<script>
+    $(document).ready(function () {
+        // 탭 클릭 이벤트
+        $('.tabs ul').on("click", "li", switchTabs);
+
+        function switchTabs(e) {
+            e.preventDefault();
+            const container = $(this).closest('.tabs-container');
+            const type = $(this).data('type');
+
+            // 탭 활성화 및 비활성화
+            container.find('.tabs ul li').removeClass('is-active');
+            $(this).addClass('is-active');
+
+            // 탭에 맞는 입력창 노출
+            container.find('.tab-content > div').hide();
+            container.find('#' + type + 'Input').show();
+
+            // 입력 필드 초기화
+            $('#userInput').val('');
+            $('#idInputSection input').val('');
+        }
+
+        // 개별 탭에서 IP/ID 전환
+        $('input[name="sourceType"]').on('change', function () {
+            const value = $(this).val();
+            if (value === 'IP') {
+                $('#ipInputSection').show();
+                $('#idInputSection').hide();
+            } else {
+                $('#ipInputSection').hide();
+                $('#idInputSection').show();
+            }
+        });
+    });
+</script>
+
+</body>
+</html>
