@@ -1,0 +1,120 @@
+
+
+    <div class="modal" id="searchKnoxModal">
+        <%-- <div class="modal-background"></div> --%>
+        <div class="modal-card">
+            <header class="modal-card-head has-background-link">
+                <p class="modal-card-title has-text-white is-size-6">임직원 조회</p>
+                <button class="delete is-small" aria-label="close" id="closeModal"></button>
+            </header>
+            <section class="modal-card-body">
+                <!-- 모달 검색 입력 -->
+                <div class="field has-addons search-container">
+                    <div class="control">
+                        <div class="select is-small">
+                            <select id="modalSearchField">
+                                <option value="uid">Knox ID</option>
+                                <option value="cn">사용자명</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="control is-expanded">
+                        <input class="input is-small" type="text" placeholder="검색어를 입력하세요" id="modalSearchInput">
+                    </div>
+                    <div class="control">
+                        <button class="button is-link is-small" id="modalSearchButton">
+                            <span class="icon is-small">
+                                <i class="fas fa-search"></i>
+                            </span>
+                        </button>
+                    </div>
+                </div>
+                <!-- 결과 테이블 -->
+                <div class="table-container">
+                    <table class="table is-fullwidth is-hoverable is-small">
+                        <thead>
+                            <tr class="is-vcentered has-text-centered is-size-7">
+                                <th class="is-vcentered has-text-centered is-size-7">이름</th>
+                                <th class="is-vcentered has-text-centered is-size-7">사용자 ID</th>
+                                <th class="is-vcentered has-text-centered is-size-7">부서명</th>
+                                <th class="is-vcentered has-text-centered is-size-7">회사</th>
+                                <th class="is-vcentered has-text-centered is-size-7">이메일</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resultTable">
+                            <!-- 결과가 여기에 삽입됩니다 -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            <footer class="modal-card-foot is-justify-content-end">
+                    <button class="button is-small is-pulled-right" id="closeModalFooter">닫기</button>
+              
+            </footer>
+        </div>
+    </div>
+
+
+<script>
+
+            // 모달 열기
+            $('#searchMailReciver').click(function() {
+                $('#searchKnoxModal').addClass('is-active');
+                $('#modalSearchField').val($('#viewREC_CD').val());
+                $('#modalSearchInput').val($('#viewREC_NM').val());
+                searchKnoxUser();
+            });
+
+            // 모달 닫기
+            $('#closeModal, #closeModalFooter, .modal-background').click(function() {
+                $('#searchKnoxModal').removeClass('is-active');
+            });
+
+            // 검색 버튼 클릭
+            $('#mainSearchButton, #modalSearchButton').click(function() {
+                searchKnoxUser();
+            });
+            
+                        function searchKnoxUser() {
+                const isModal = $('#searchKnoxModal').hasClass('is-active');
+                const searchField = isModal ? $('#modalSearchField').val() : $('#viewREC_CD').val();
+                const searchVal = isModal ? $('#modalSearchInput').val() : $('#viewREC_NM').val();
+
+                if (isModal) {
+                    getKnoxSearchData();
+                } else {
+                }
+            }
+            
+                        function getKnoxSearchData(){
+                let searchValue = $('#modalSearchInput').val(); 
+                const requestData = {
+                  "langCd": "<%= uGetUserLang %>",
+                  "userId": "<%= uGetSingleID %>",
+                  "cmd": "USR",
+                  "apprGbn": "",
+                  "searchFlag": "",
+                  "searchField": "cn",
+                  "searchVal": searchValue,
+                  "ipInfo":"IP",
+                  "userInfo": userInfoParam,
+                 
+
+              };
+                  $.ajax({
+                    url: "http://10.199.20.5:8090/itvoc/it4u/api/firewall/fwUserSearch.jsp",
+                    type: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify(requestData),
+                    success: function(response){
+                      console.log("response",response);
+
+                      displayResults(response);
+
+                    },
+                    error: function(xhr, status, error){
+                      console.log("Error",status, error);
+                    }
+                  });
+      }
+</script>
