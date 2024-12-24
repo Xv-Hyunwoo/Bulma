@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>검색 페이지</title>
+    <!-- Bulma CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        .table-container {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .modal-card {
+            width: 600px;
+            max-width: 600px;
+            height: 500px; /* 모달 높이 고정 */
+        }
+        .search-container {
+            width: 300px;
+            margin: 0 auto;
+        }
+
+    </style>
+</head>
+<body>
+    <!-- 메인 페이지 검색 섹션 -->
+    <div class="field has-addons">
+        <div class="control">
+            <div class="select is-small">
+                <select id="mainSearchField">
+                    <option value="uid">Knox ID</option>
+                    <option value="cn">사용자명</option>
+                </select>
+            </div>
+        </div>
+        <div class="control is-expanded">
+            <input class="input is-small" type="text" placeholder="검색어를 입력하세요" id="mainSearchInput">
+        </div>
+        <div class="control">
+            <button class="button is-primary is-small" id="mainSearchButton">검색</button>
+        </div>
+    </div>
+
+    <!-- 모달 열기 버튼 -->
+    <button class="button is-primary is-small" id="openModal">모달 열기</button>
+
+    <!-- 모달 구조 -->
+    <div class="modal" id="searchModal">
+        <div class="modal-background"></div>
+        <div class="modal-card">
+            <header class="modal-card-head has-background-link">
+                <p class="modal-card-title has-text-white is-size-6">임직원 조회</p>
+                <button class="delete is-small" aria-label="close" id="closeModal"></button>
+            </header>
+            <section class="modal-card-body">
+                <!-- 모달 검색 입력 -->
+                <div class="field has-addons search-container">
+                    <div class="control">
+                        <div class="select is-small">
+                            <select id="modalSearchField">
+                                <option value="uid">Knox ID</option>
+                                <option value="cn">사용자명</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="control is-expanded">
+                        <input class="input is-small" type="text" placeholder="검색어를 입력하세요" id="modalSearchInput">
+                    </div>
+                    <div class="control">
+                        <button class="button is-link is-small" id="modalSearchButton">
+                            <span class="icon is-small">
+                                <i class="fas fa-search"></i>
+                            </span>
+                        </button>
+                    </div>
+                </div>
+                <!-- 결과 테이블 -->
+                <div class="table-container">
+                    <table class="table is-fullwidth is-hoverable is-small">
+                        <thead>
+                            <tr class="is-vcentered has-text-centered is-size-7">
+                                <th>이름</th>
+                                <th>사용자 ID</th>
+                                <th>부서명</th>
+                                <th>회사</th>
+                                <th>이메일</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resultTable">
+                            <!-- 결과가 여기에 삽입됩니다 -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            <footer class="modal-card-foot is-justify-content-end">
+               
+                    <button class="button is-small is-pulled-right" id="closeModalFooter">닫기</button>
+              
+            </footer>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        $(document).ready(function() {
+            // 모달 열기
+            $('#openModal').click(function() {
+                $('#searchModal').addClass('is-active');
+                $('#modalSearchField').val($('#mainSearchField').val());
+                $('#modalSearchInput').val($('#mainSearchInput').val());
+                fetchData();
+            });
+
+            // 모달 닫기
+            $('#closeModal, #closeModalFooter, .modal-background').click(function() {
+                $('#searchModal').removeClass('is-active');
+            });
+
+            // 검색 버튼 클릭
+            $('#mainSearchButton, #modalSearchButton').click(function() {
+                fetchData();
+            });
+
+            // 데이터 가져오기
+            function fetchData() {
+                const isModal = $('#searchModal').hasClass('is-active');
+                const searchField = isModal ? $('#modalSearchField').val() : $('#mainSearchField').val();
+                const searchVal = isModal ? $('#modalSearchInput').val() : $('#mainSearchInput').val();
+
+                const mockResponse = {
+                    fwListKr: [
+                        { name: '홍길동', uid: 'hong123', department: '개발팀', orgName: 'ABC회사', userMail: 'hong@example.com' },
+                        { name: '김철수', uid: 'kimcs', department: '마케팅팀', orgName: 'XYZ회사', userMail: 'kim@example.com' },
+                        { name: '이영희', uid: 'leeyh', department: '인사팀', orgName: 'DEF회사', userMail: 'lee@example.com' }
+                    ]
+                };
+
+                if (isModal) {
+                    displayResults(mockResponse.fwListKr);
+                } else {
+                    console.log('메인 페이지 검색 결과:', mockResponse.fwListKr);
+                }
+            }
+
+            // 검색 결과 표시
+            function displayResults(results) {
+                const $resultTable = $('#resultTable');
+                $resultTable.empty();
+
+                results.forEach(result => {
+                    const $row = $('<tr class="is-vcentered has-text-centered is-size-7">');
+                    const $nameCell = $('<td>').append(
+                        $('<a>', {
+                            href: '#',
+                            text: result.name,
+                            class: 'has-text-link',
+                            click: function(e) {
+                                e.preventDefault();
+                                selectResult(result);
+                            }
+                        })
+                    );
+                    $row.append($nameCell)
+                        .append($('<td>').text(result.uid))
+                        .append($('<td>').text(result.department))
+                        .append($('<td>').text(result.orgName))
+                        .append($('<td>').text(result.userMail));
+
+                    $resultTable.append($row);
+                });
+            }
+
+            // 선택된 행 데이터 반영
+            function selectResult(result) {
+                $('#mainSearchInput').val(result.name);
+                $('#searchModal').removeClass('is-active');
+                console.log('선택된 데이터:', result);
+            }
+        });
+    </script>
+</body>
+</html>
