@@ -1,0 +1,124 @@
+$(document).ready(function () {
+    const REQ_NO = "F202412260122";  // 서버에 보낼 고정 REQ_NO (예시)
+    let latestResponseData = null;  // 마지막 응답 데이터를 저장할 변수
+
+    // 서버로부터 받은 데이터로 테이블 다시 그리기
+    function populateTable(data) {
+        const $tableBody = $('#fwReqTableBody');
+        $tableBody.empty();  // 기존 테이블 초기화
+
+        if (data.length === 0) {
+            // 데이터가 없을 경우 "신청 내역 없음" 메시지 표시
+            $tableBody.append(`
+                <tr class="is-size-7 fw-req-empty-row">
+                    <td colspan="11" class="is-vcentered has-text-centered is-no-data">신청 내역이 존재하지 않습니다.</td>
+                </tr>
+            `);
+            return;
+        }
+
+        // 데이터가 있을 경우 행 추가
+        $.each(data, function (index, item) {
+            const row = `
+                <tr class="is-size-7">
+                    <td>${index + 1}</td>
+                    <td>${item.REG_NM}</td>
+                    <td>${item.USER_NM}</td>
+                    <td>${item.SOURCE_CODE}</td>
+                    <td>${item.SOURCE_TYPE_NM}</td>
+                    <td>${item.TARGET}</td>
+                    <td>${item.TARGET_TYPE_NM}</td>
+                    <td>${item.PORT}</td>
+                    <td>${item.JOB}</td>
+                    <td>${item.REMARK}</td>
+                    <td>
+                        <input type="checkbox" class="row-checkbox" data-seq="${item.SEQ}">
+                    </td>
+                    <input type="hidden" name="APP_ID" value="${item.APP_ID}">
+                    <input type="hidden" name="USER_ID" value="${item.USER_ID}">
+                </tr>
+            `;
+            $tableBody.append(row);
+        });
+    }
+
+    // 선택된 행 삭제 및 서버 요청 함수
+    function deleteSelectedRows() {
+        const $selectedRows = $('.row-checkbox:checked');
+
+        if ($selectedRows.length === 0) {
+            alert('삭제할 항목을 선택하세요.');
+            return;
+        }
+
+        let completedRequests = 0;  // 완료된 요청 카운트
+
+        // 선택된 행마다 개별 Ajax 요청
+        $selectedRows.each(function (index) {
+            const seq = $(this).data('seq');  // SEQ 값 추출
+
+            // Ajax 삭제 요청
+            $.ajax({
+                url: '/itvoc/it4u/firewall/delete',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    SEQ: seq,
+                    REQ_NO: REQ_NO
+                }),
+                success: function (response) {
+                    if (response.STATUS === 'SUCCESS') {
+                        latestResponseData = response.result;  // 응답 데이터 저장 (마지막 요청 덮어쓰기)
+                    } else {
+                        alert(`삭제 실패: ${response.MSG}`);
+                    }
+                },
+                error: function () {
+                    alert(`삭제 요청 실패: SEQ=${seq}`);
+                },
+                complete: function () {
+                    completedRequests++;
+
+                    // 모든 요청이 완료된 경우 테이블 갱신
+                    if (completedRequests === $selectedRows.length && latestResponseData) {
+                        populateTable(latestResponseData);  // 최신 데이터로 테이블 다시 그리기
+                    }
+                }
+            });
+        });
+    }
+
+    // "선택 삭제" 버튼 클릭 이벤트
+    $('#deleteSelected').click(function () {
+        deleteSelectedRows();
+    });
+});
+
+         function addRowToTable(item) {
+    const $tableBody = $('#fwReqTableBody');
+    
+    // "신청 내역 없음" 메시지가 있을 경우 삭제
+    if ($tableBody.find('.fw-req-empty-row').length > 0) {
+        $tableBody.empty();
+    }
+
+    const rowCount = $tableBody.find('tr').length;  // 현재 행 개수
+    const row = `
+        <tr class="is-size-7">
+            <td>${rowCount + 1}</td>
+            <td>${item.REG_NM}</td>
+            <td>${item.USER_NM}</td>
+            <td>${item.SOURCE_CODE}</td>
+            <td>${item.SOURCE_TYPE_NM}</td>
+            <td>${item.TARGET}</td>
+            <td>${item.TARGET_TYPE_NM}</td>
+            <td>${item.PORT}</td>
+            <td>${item.JOB}</td>
+            <td>${item.REMARK}</td>
+            <td>
+                <input type="checkbox" class="row-checkbox" data-seq="${item.SEQ}">
+            </td>
+        </tr>
+    `;
+    $tableBody.append(row);
+} 
