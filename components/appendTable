@@ -1,0 +1,74 @@
+      <table class="table is-bordered is-hoverable is-fullwidth has-text-centered is-border-top-thick">
+        <thead>
+          <tr class="has-background-link-light is-size-7">
+            <th class="has-text-centered">번호</th>
+            <th class="has-text-centered">신청자</th>
+            <th class="has-text-centered">실사용자</th>
+            <th class="has-text-centered">출발지</th>
+            <th class="has-text-centered">출발지유형</th>
+            <th class="has-text-centered">목적지</th>
+            <th class="has-text-centered">목적지 유형</th>
+            <th class="has-text-centered">포트</th>
+            <th class="has-text-centered">사용목적</th>
+            <th class="has-text-centered">구분</th>
+            <th class="has-text-centered">선택</th>
+          </tr>
+        </thead>
+        <tbody class="tbody-blank" id="fwReqTableBody">
+          <tr class="is-size-7 fw-req-empty-row">
+            <td colspan="11" class="is-vcentered has-text-centered is-no-data">신청 내역이 존재하지 않습니다.</td>
+          </tr>
+        </tbody>
+      </table>
+
+
+{
+    "MSG": "SUCCESS",
+    "result": [
+        {
+            "TARGET": "20.30.5.2",
+            "APP_ID": "P241107072852C602497",
+            "SOURCE_TYPE_NM": "개별IP",
+            "PORT": "8080",
+            "USER_ID": "hyunwuu.jung",
+            "SOURCE_GRP_YN": "N",
+            "REG_NM": "정현우",
+            "SOURCE_CODE": "101.20.5.2",
+            "TARGET_GRP_YN": "N",
+            "SOURCE_TYPE": "I",
+            "TARGET_CODE": "20.30.5.2",
+            "USER_NM": "정현우",
+            "TARGET_TYPE_NM": "개별IP",
+            "SOURCE": "101.20.5.2",
+            "USER_NM_EN": "HYUNWOO JUNG",
+            "JOB": "test",
+            "REQ_NO": "F202412260122",
+            "REMARK": "TCP",
+            "SEQ": "216",
+            "TARGET_TYPE": "I"
+        },
+        {
+            "TARGET": "20.30.5.5-10",
+            "APP_ID": "P241107072852C602497",
+            "SOURCE_TYPE_NM": "개별IP",
+            "PORT": "8080",
+            "USER_ID": "hyunwuu.jung",
+            "SOURCE_GRP_YN": "N",
+            "REG_NM": "정현우",
+            "SOURCE_CODE": "101.20.5.5-10",
+            "TARGET_GRP_YN": "N",
+            "SOURCE_TYPE": "I",
+            "TARGET_CODE": "20.30.5.5-10",
+            "USER_NM": "정현우",
+            "TARGET_TYPE_NM": "개별IP",
+            "SOURCE": "101.20.5.5-10",
+            "USER_NM_EN": "HYUNWOO JUNG",
+            "JOB": "test",
+            "REQ_NO": "F202412260122",
+            "REMARK": "TCP",
+            "SEQ": "217",
+            "TARGET_TYPE": "I"
+        }
+    ],
+    "STATUS": "SUCCESS"
+}
