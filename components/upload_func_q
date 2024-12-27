@@ -1,0 +1,154 @@
+    function fileUpload(){
+        var cip = "<%=request.getRemoteAddr() %>";
+        tempForm =  document.fwReq_min_form;
+        let testA = "<%= CommonUtil.rplc(CommonUtil.encodeBySS(REQ_NO), "+", "*") %>"
+        let testB = "<%=strUpMode%>"
+
+        console.log(testA)
+        console.log(testB)
+        <%-- ##### S/R No: D08060002983 UP_MODE추가. ##### --%>
+          var url =  "/itvoc/it4u/firewall/fwReqUnifyUpload.jsp?REQ_NO=<%= CommonUtil.rplc(CommonUtil.encodeBySS(REQ_NO), "+", "*") %>&UP_MODE=<%=strUpMode%>&CIP="+$("#CIP").val();
+        console.log(url)
+    	// crossBrowsing 2022/05/10 추가
+    	   openModal(url, '', '520', '320', 'auto', 'setFileUploadReturnFunction');
+        //openModal(url, '', '520', '320', 'auto');
+          console.log("@@@@@1111",returnValue)
+    	if(returnValue != null) {
+        console.log("@@@@@22222",returnValue)
+    		if( returnValue == "NEW" ) {
+           
+    			<%--alert("데이타가 정상적으로 저장되었습니다.");--%>
+    			searchReqFWTemp(returnValue);
+    		}
+    		else {
+    			<%--alert("화면을 비정상적으로 닫으셨거나, \n\n 임시저장중 문제가 발생했습니다. 관리자에게 문의하십시요.");--%>
+    			searchReqFWTemp(returnValue);
+    		}
+    	}
+    }
+
+    function setFileUploadReturnFunction(returnValueObj){
+    	var obj = returnValueObj.args;
+    	var returnValue = returnValueObj.retVal;
+      console.log("@@@@@3333",returnValue)
+    	if( returnValue == "NEW" ) {
+            <%--alert("데이타가 정상적으로 저장되었습니다.");--%>
+            searchReqFWTemp(returnValue);
+        }
+        else {
+            <%--alert("화면을 비정상적으로 닫으셨거나, \n\n 임시저장중 문제가 발생했습니다. 관리자에게 문의하십시요.");--%>
+            searchReqFWTemp(returnValue);
+        }
+    }
+    
+    function searchReqFWTemp(up_mode) {
+    	$("#UP_MODE").val(up_mode);
+    	$.ajax({
+	    	type: "GET",
+	    	url: "/itvoc/it4u/firewall/fwReqUnifyTempPopUp_min_fvl.jsp", //url: "/itvoc/esp/jsp/proxy/webReq_upload_IF.jsp", //
+	    	cache: false, // cache가 true일 때 Ajax 서버 프로그램(.jsp)을 변경해도 반영되지 않는 이슈가 있어 false로 설정한다.
+	    	dataType : "json",	
+	    	data: {
+	    		REQ_NO  : "<%=REQ_NO%>",
+	    			//NEWREQ  : NEWREQ,
+	    		CMD     : ""
+	    	},
+	    	async: false, // 비동기 방식으로 ajax 응답을 받을 경우 프로세스상 문제가 발생하여 [async : false] 방식으로 처리한다. 
+	    	success: function(data) {
+	    		SearchList(data);
+	    	},
+	    	error:function(request,status,error){        
+	    		console.log(error); 
+		    	var toastParams = { msgType : "is-danger", msgPosition : "top-center", msgContent :'<%=getPro.getProperty("FWL1300082_",languageCodeForConversion)%>\n<%=getPro.getProperty("FWL2202004_",languageCodeForConversion)%>', };
+				renderToast(toastParams); 
+	        	return;
+	    	}
+	    });
+    }
+    
+    function SearchList(data){
+		for(var i=0; i<rowcount; i++){
+        	$("#app_search_tr_"+i).remove();
+        }
+		var ycnt=0;
+		rowcount = 0;
+		if(data.length > 0 ){
+			
+			if (data.length > 15) $(".table-scrollable").css('height', '400px'); 
+			$("#app_no_tr").css("display", 'none');
+			saveCnt = 0;
+			for (i = 0; i < data.length; i++) {
+				if(data[i].List == "Y"){
+					var text = "";
+	                text = "<tr class=\"is-vcentered has-text-centered is-size-7\" id='app_search_tr_" + rowcount +"'>";
+	                if(data[i].SAVE_YN == "Y"){
+	                	//text +=  	"<td><input type='checkbox' id='DEL_CHECK_"+rowcount+"' name='DEL_CHECK_"+rowcount+"' value='"+rowcount+"' onClick='javascript:CheckSelect("+rowcount+")'></td>";
+	                	text +=  	"<td><input type='checkbox' id='DEL_CHECK_"+rowcount+"' name='DEL_CHECK_"+rowcount+"' value='"+rowcount+"'></td>";
+	                	saveCnt = parseInt(saveCnt)+1;
+	                }else{
+	                	text +=  	"<td><input type='checkbox' id='DEL_CHECK_"+rowcount+"' name='DEL_CHECK_"+rowcount+"' value='"+rowcount+"' disabled></td>";
+	                }
+	                text += 	"<td >"+(ycnt+1)+"</td>";
+	                text += 	"<td > <a href='javascript:CheckSelect("+rowcount+")'>"+data[i].APP_ID+"</td>";
+	                text += 	"<td class='userTdClass'>"+data[i].TARGET+"</a></td>";
+	                text += 	"<td class='userTdClass'>"+data[i].STRPORT+"</td>";
+	                text += 	"<td class='userTdClass'>"+data[i].REMARK+"</td>";
+	                text += 	"<td class='userTdClass'>"+data[i].JOB+"</td>";
+	                text += 	"<td class='userTdClass'>"+data[i].EQUIP_YN+"</td>";
+	                text += 	"<td class='userTdClass'>"+setMsg(data[i].MSG)+"</td>";
+	                //text +=  	"<td><input type='checkbox' id='DEL_CHECK_"+rowcount+"' name='DEL_CHECK_"+rowcount+"' value='"+rowcount+"' onClick='javascript:CheckSelect("+rowcount+")'></td>";
+	                text += 	"<td style='display:none;'><input type='hidden' name='PORT_"+ycnt+"' value='"+data[i].PORT+"'>"+data[i].PORT+"</td>";
+	                text += 	"<td style='display:none;'><input type='hidden' name='JOB_"+ycnt+"' value='"+data[i].JOB+"'>"+data[i].JOB+"</td>";
+	                text += 	"<td style='display:none;'><input type='hidden' name='REQ_GBN_"+ycnt+"' value='"+data[i].REQ_GBN+"'>"+data[i].REQ_GBN+"</td>";
+	                text += 	"<td style='display:none;'><input type='hidden' name='SAVE_YN_"+ycnt+"' value='"+data[i].SAVE_YN+"'>"+data[i].SAVE_YN+"</td>";
+	                text += 	"<td style='display:none;'><input type='hidden' name='TMP_SEQ_"+ycnt+"' value='"+data[i].TMP_SEQ+"'>"+data[i].TMP_SEQ+"</td>";
+	                text += 	"<td style='display:none;'><input type='hidden' name='REQ_NO_"+ycnt+"' value='"+data[i].REQ_NO+"'>"+data[i].REQ_NO+"</td>";
+	                text += 	"<td style='display:none;'><input type='hidden' id='FW_"+ycnt+"' name='FW_"+ycnt+"' value='ON' >ON</td>";
+	                text += 	"<td style='display:none;'><input type='hidden' name='APP_ID_"+ycnt+"'value='"+data[i].APP_ID+"'>"+data[i].APP_ID+"</td>";
+	                text += 	"<td style='display:none;'><input type='hidden' name='CIP_"+ycnt+"' value='"+data[i].CIP+"'>"+data[i].CIP+"</td>";
+	                text += 	"<td style='display:none;'><input type='hidden' name='TARGET_"+ycnt+"' value='"+data[i].TARGET+"'>"+data[i].TARGET+"</td>";
+	                text += 	"<td style='display:none;'><input type='hidden' name='REMARK_"+ycnt+"' value='"+data[i].REMARK+"'>"+data[i].REMARK+"</td>";
+	                text += 	"<td style='display:none;'><input type='hidden' name='FR_COMP_CD_"+ycnt+"' value='"+data[i].FR_COMP_CD+"'>"+data[i].FR_COMP_CD+"</td>";
+	                text += 	"<td style='display:none;'><input type='hidden' name='SUB_TAG_"+ycnt+"' value='"+data[i].SUB_TAG+"'>"+data[i].SUB_TAG+"</td>";
+	                text += 	"<td style='display:none;'><input type='hidden' name='FR_GRPCD_"+ycnt+"' value='"+data[i].FRCOMPT_GRPCD+"'>"+data[i].FRCOMPT_GRPCD+"</td>";
+	                text += 	"<td style='display:none;'><input type='hidden' name='TO_GRPCD_"+ycnt+"' value='"+data[i].TOCOMPT_GRPCD+"'>"+data[i].TOCOMPT_GRPCD+"</td>";
+	                text += 	"<td style='display:none;'><input type='hidden' name='TO_COMPT_CD_"+ycnt+"' value='"+data[i].TOCOMPT_CD+"'>"+data[i].TOCOMPT_CD+"</td>";
+	                text += 	"<td style='display:none;'><input type='hidden' name='EQUIP1_CD_"+ycnt+"' value='"+data[i].EQUIP1_CD+"'>"+data[i].EQUIP1_CD+"</td>";
+	                text += 	"<td style='display:none;'><input type='hidden' name='EQUIP2_CD_"+ycnt+"' value='"+data[i].EQUIP2_CD+"'>"+data[i].EQUIP2_CD+"</td>";
+	                text += 	"<td style='display:none;'><input type='hidden' name='EQUIP3_CD_"+ycnt+"' value='"+data[i].EQUIP3_CD+"'>"+data[i].EQUIP3_CD+"</td>";
+	                text += 	"<td style='display:none;'><input type='hidden' name='EQUIP4_CD_"+ycnt+"' value='"+data[i].EQUIP4_CD+"'>"+data[i].EQUIP4_CD+"</td>";
+	                text += 	"<td style='display:none;'><input type='hidden' name='FRCOMPT_GRPNM_"+ycnt+"' value='"+data[i].FRCOMPT_GRPNM+"'>"+data[i].FRCOMPT_GRPNM+"</td>";
+	                text += 	"<td style='display:none;'><input type='hidden' name='FRCOMPT_NM_"+ycnt+"' value='"+data[i].FRCOMPT_NM+"'>"+data[i].FRCOMPT_NM+"</td>";
+	                text += 	"<td style='display:none;'><input type='hidden' name='TOCOMPT_GRPNM_"+ycnt+"' value='"+data[i].TOCOMPT_GRPNM+"'>"+data[i].TOCOMPT_GRPNM+"</td>";
+	                text += 	"<td style='display:none;'><input type='hidden' name='TOCOMPT_NM_"+ycnt+"' value='"+data[i].TOCOMPT_NM+"'>"+data[i].TOCOMPT_NM+"</td>";
+	                text += 	"<td style='display:none;'>";
+	                if(data[i].MSG2 == "URL"){
+						
+						text += "<input type='hidden' id='itemCompartmentGrpcd' name='itemCompartmentGrpcd_"+ ycnt+"' value='"+data[i].compt_grpcd+"'>";
+						text += "<input type='hidden' id='itemCompartmentCd' name='itemCompartmentCd_"+ ycnt+"' value='"+data[i].compt_cd+"'>";
+						text += "<input type='hidden' id='itemCompartmentName' name='itemCompartmentName_"+ ycnt+"' value='"+data[i].compt_nm+"'>";
+						text += "<input type='hidden' id='itemCompartmentNameEn' name='itemCompartmentNameEn_"+ rowcount+"' value='"+data[i].compt_nm_en+"'>";
+						text += "<input type='hidden' id='itemEquipment1' name='itemEquipment1_"+ ycnt+"' value='"+data[i].equip_cd1+"'>";
+						text += "<input type='hidden' id='itemEquipment2' name='itemEquipment2_"+ ycnt+"' value='"+data[i].equip_cd2+"'>";
+						text += "<input type='hidden' id='itemEquipment3' name='itemEquipment3_"+ ycnt+"' value='"+data[i].equip_cd3+"'>";
+						text += "<input type='hidden' id='itemEquipment4' name='itemEquipment4_"+ ycnt+"' value='"+data[i].equip_cd4+"'>";
+						
+						//$("#app_tbl").append(text2);
+					}
+	                text += "</td>";
+	                text += "</tr>";
+					$("#app_tbl").append(text);
+					ycnt = ycnt+1;
+					rowcount = rowcount+1;
+				}		
+			}
+			$("#allCheckBox").prop("checked", false);
+			if(ycnt==0){
+				$("#app_no_tr").css("display", '');
+			}
+		}else{
+			$("#app_no_tr").css("display", '');
+		}
+		$("#LISTSIZE").val(rowcount);
+	}
+s
