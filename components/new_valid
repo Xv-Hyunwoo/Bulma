@@ -1,0 +1,49 @@
+    $('#REQ_IP').on('focusout', function () {
+      let inputVal = $(this).val().trim();
+      // 빈값일때는 검증패스
+      if (inputVal === '') {
+        $('#REQ_IP').removeClass('is-danger is-success');
+        $('#successIcon').hide();
+        $('#errorIcon').hide();
+        return;
+      }
+
+      let validationResult = validateInput(inputVal);
+
+      if (validationResult) {
+        $('#REQ_IP').removeClass('is-danger').addClass('is-success');
+        $('#successIcon').show();
+        $('#errorIcon').hide();
+      } else {
+        $('#REQ_IP').removeClass('is-success').addClass('is-danger');
+        $('#successIcon').hide();
+        $('#errorIcon').show();
+
+        // 실패 시 토스트 메시지 출력
+        var toastParams = { msgType: "is-danger", msgPosition: "top-center", msgContent: '잘못된 형식입니다.' };
+        renderToast(toastParams);
+      }
+    });
+    
+      function validateInput(input) {
+    let ipRegex = /^(?:\d{1,3}\.){3}\d{1,3}(?:-(\d{1,3}))?$/;
+    // let idRegex = /^[a-zA-Z0-9]+\.{1}[a-zA-Z0-9]+$/;
+
+    if (ipRegex.test(input)) {
+      let parts = input.split('-');
+      let startIP = parts[0].split('.').map(Number);
+      let endNum = parts.length > 1 ? parseInt(parts[1], 10) : null;
+
+      if (startIP.some(seg => seg > 255 || seg < 0)) {
+        return false;
+      }
+      if (endNum !== null && (endNum < startIP[3] || endNum > 255)) {
+        return false;
+      }
+
+      return true;
+
+    } else {
+      return false;
+    }
+  }
