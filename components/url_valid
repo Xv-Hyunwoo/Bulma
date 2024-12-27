@@ -1,0 +1,96 @@
+$(document).ready(function () {
+    // IP 유효성 검증 이벤트 (REQ_IP input)
+    $('#REQ_IP').on('focusout', function () {
+        let inputVal = $(this).val().trim();
+
+        // 빈값일때는 검증패스
+        if (inputVal === '') {
+            resetValidation('#REQ_IP');
+            return;
+        }
+
+        let validationResult = validateIP(inputVal);  // IP 유효성 검증
+
+        if (validationResult) {
+            applyValidation('#REQ_IP', true);
+        } else {
+            applyValidation('#REQ_IP', false);
+            showToast('잘못된 IP 형식입니다.');
+        }
+    });
+
+    // 새로운 input: IP 또는 URL 유효성 검증
+    $('#REQ_DEST').on('focusout', function () {
+        let inputVal = $(this).val().trim();
+
+        if (inputVal === '') {
+            resetValidation('#REQ_DEST');
+            return;
+        }
+
+        let validationResult = validateIPorURL(inputVal);  // IP or URL 검증
+
+        if (validationResult) {
+            applyValidation('#REQ_DEST', true);
+        } else {
+            applyValidation('#REQ_DEST', false);
+            showToast('IP 또는 URL 형식이 잘못되었습니다.');
+        }
+    });
+
+    // IP 유효성 검증 (범위 포함)
+    function validateIP(input) {
+        let ipRegex = /^(?:\d{1,3}\.){3}\d{1,3}(?:-(\d{1,3}))?$/;
+
+        if (ipRegex.test(input)) {
+            let startIP = input.split('-')[0];  // 범위의 앞부분 IP만 검증
+            let segments = startIP.split('.').map(Number);
+
+            // 각 세그먼트 범위 확인 (0 ~ 255)
+            if (segments.some(seg => seg > 255 || seg < 0)) {
+                return false;
+            }
+            return true;
+        } 
+        return false;
+    }
+
+    // IP or URL 유효성 검증
+    function validateIPorURL(input) {
+        let ipRegex = /^(?:\d{1,3}\.){3}\d{1,3}(?:-(\d{1,3}))?$/;
+        let urlRegex = /^(https?:\/\/)?([\w\-]+\.)+[\w\-]+(\/[\w\-./?%&=]*)?$/;
+
+        if (ipRegex.test(input)) {
+            return validateIP(input);  // IP 형식이면 IP 검증 로직 호출
+        } else if (urlRegex.test(input)) {
+            return true;  // URL 형식이면 true
+        }
+        return false;
+    }
+
+    // 성공/실패 시 input 스타일 및 아이콘 변경
+    function applyValidation(selector, isValid) {
+        if (isValid) {
+            $(selector).removeClass('is-danger').addClass('is-success');
+            $(selector + ' ~ #successIcon').show();
+            $(selector + ' ~ #errorIcon').hide();
+        } else {
+            $(selector).removeClass('is-success').addClass('is-danger');
+            $(selector + ' ~ #successIcon').hide();
+            $(selector + ' ~ #errorIcon').show();
+        }
+    }
+
+    // 유효성 초기화
+    function resetValidation(selector) {
+        $(selector).removeClass('is-danger is-success');
+        $(selector + ' ~ #successIcon').hide();
+        $(selector + ' ~ #errorIcon').hide();
+    }
+
+    // 토스트 메시지 출력
+    function showToast(message) {
+        var toastParams = { msgType: "is-danger", msgPosition: "top-center", msgContent: message };
+        renderToast(toastParams);
+    }
+});
