@@ -1,0 +1,475 @@
+<%--
+/************************************************************************************************************
+*   Program ID      fwReqIdUp_min_fvl.jsp
+*   Program Name    방화벽 ID CSV신청(추가,수정,삭제,조회)
+*   Description
+*   Modified Log
+*
+*S/R No         작업일자        작업자     작업내용
+*------------------------------------------------------------------------------------------------------------
+*               2023-07-27        ID기반 방화벽신청 개발
+
+************************************************************************************************************
+--%>
+<%@ page language="java" contentType="text/html;charset=utf-8"%>
+
+
+<!-- java파일-->
+<%@ page import="java.sql.*"  %>
+<%@ page import="java.util.*"%>
+<%@ page import="java.rmi.*" %>
+<%@ page import="javax.rmi.*" %>
+<%@ page import="javax.ejb.*" %>
+<%@ page import="javax.naming.*" %>
+<%@ page import="sun.jdbc.rowset.*"%>
+<%@ page import="org.apache.log4j.*" %>
+
+<!-- 공통 라이브러리 -->
+<%@ page import="it4u.cmlib.util.*"%>
+<%@ page import="it4u.cmlib.db.*"%>
+<%@ page import="it4u.cmlib.param.*"%>
+<%@ page import="it4u.cmlib.startup.*"%>
+<%@ page import="it4u.cmlib.exception.*"%>
+
+<!-- 패키지  -->
+<%@ page import="it4u.it4u.common.util.*"%>
+<%@ page import="it4u.it4u.common.ejb.*"%>
+<%@ page import="it4u.it4u.helpzone.firewall.ejb.*"%>
+
+<%@ page import="org.json.simple.*"%>
+
+<jsp:useBean id="userInfo" class="it4u.it4u.common.util.UserInfo" scope="session"/>
+<%@ include file="./fwIpToBiz.jsp" %>
+<%@ include file="/it4u/common/loginCheck.jsp" %>
+
+<!-- 
+ Params 
+	      추가
+	    REQ_No
+	    EPID
+	    SUB_TAG
+	    SOURCE_TYPE
+	    TARGET_TYPE
+	    SOURCE
+	    TARGET
+	    REG_USER_ID
+	    REG_USER_NM
+	    REG_USER_DEPT
+	    REG_USER_NM_EN
+	    REG_USER_DEPT_EN
+	    REG_IP
+	    TMP_SEQ
+	    SYNC_YN
+	   수정
+	    REMARK
+	    JOB
+	    USER_ID
+	    USER_NM
+	    USER_NM_EN
+	    TMP_SEQ
+	    REQ_NO
+	   삭제
+	   TMP_SEQ
+	    REQ_NO
+	   조회
+	   REQ_NO
+
+ -->
+
+<%
+	try {
+		//공통으로 사용할 EJB를 지정한다.
+		// JNDI 이름을 지정한다.
+		String CM_JNDI_NAME = "JNDI_It4uCommon";
+
+		// 사용할 EJB의 Home, Remote Interface 를 선언한다.
+		it4uCmHome 	cmhome;
+		it4uCm 		cmremote;
+
+		//현재 페이지에서 사용할 EJB를 지정한다.
+		// JNDI 이름을 지정한다.
+		String JNDI_NAME = "JNDI_It4uHelpzoneFirewall";
+
+		// 사용할 EJB의 Home, Remote Interface 를 선언한다.
+		it4uHpFwHome    home;
+		it4uHpFw        remote;
+		
+		String req_no = request.getParameter("REQ_NO");
+		
+		ParamModel pm = TransformParam.getParamModel(request);
+		pm.setValue("REQ_NO",req_no);
+		
+		PropertyManager pmgr = PropertyManager.getInstance();
+
+		Properties pt = new Properties();
+		pt.put(Context.INITIAL_CONTEXT_FACTORY, (String)(pmgr.getProperty("SYS_FACTORY")));
+		pt.put(Context.PROVIDER_URL, (String)(pmgr.getProperty("SYS_URL")));
+
+		Context ctx = new InitialContext(pt);
+		JndiManager jm = JndiManager.getInstance();
+		Object obj = (it4uCmHome)ctx.lookup((String)(jm.getProperty(CM_JNDI_NAME)));
+		cmhome = (it4uCmHome)PortableRemoteObject.narrow(obj, it4uCmHome.class);
+		cmremote = cmhome.create();
+
+		obj = (it4uHpFwHome)ctx.lookup((String)(jm.getProperty(JNDI_NAME)));
+		home = (it4uHpFwHome)PortableRemoteObject.narrow(obj, it4uHpFwHome.class);
+		remote = home.create();
+		
+		String strIntegerGrpCd = CommonUtil.getProperty("it4u.firewall.internet.group.code");
+        String strSecGrpCd = CommonUtil.getProperty("it4u.firewall.sec.group.code");
+        
+		String cmdStr = (String)pm.getString("CMD");
+		String currdate = "", afteryear="",weekago="";
+		String errMsg= "", status="SUCCESS"; 
+		
+		
+		//현재날짜를 얻어온다.
+		pm.setValue("CMD", "GETDATE");
+		CachedRowSet cmcrs = (CachedRowSet)((ArrayList)cmremote.getData(pm)).get(0);
+		cmcrs.beforeFirst();
+
+		if (cmcrs.next()){
+			currdate = (String) cmcrs.getString("CURRDATE");
+			afteryear = (String) cmcrs.getString("YEARAFTER");
+			weekago = (String) cmcrs.getString("WEEKAGO");
+		}
+		
+		String requestCmd = request.getParameter("CMD");
+		pm.setValue("CMD", requestCmd);
+		
+		if(pm.getString("CMD").equals(""))
+		{ //방화벽 신청 초기화면시 검색을 하게됨
+			pm.setValue("CMD","REQFW_ID_TEMP_SELECT");
+		}
+		
+		JSONArray jsonArray = new JSONArray();
+	    JSONObject jsonObject = null;
+	    
+	    ArrayList arrlist = new ArrayList();
+	    ArrayList arrlist2 = null;
+	    CachedRowSet crs = new CachedRowSet();
+	    CachedRowSet crs2 = new CachedRowSet();
+	    CachedRowSet FrCompt_Crs = null,ToCompt_Crs = null,DfCompt_Crs = null, ChkIp_Crs = null;
+	    
+	    Vector FrIP_Vt = new Vector();
+	    Vector ToIP_Vt = new Vector();
+	    
+	    ArrayList FrCompt_Arlst		= new ArrayList();
+		ArrayList ToCompt_Arlst		= new ArrayList();
+		ArrayList DfCompt_Arlst		= new ArrayList();
+		ArrayList ChkIP_Arlst		= new ArrayList();
+		
+		String FrCompt_GrpCD = "",ToCompt_GrpCD = "";
+		String FrCompt_CD = "",ToCompt_CD = "";
+		String  FrCompt_GrpNM = "",ToCompt_GrpNM = "";
+		String  FrCompt_NM = "",ToCompt_NM = "";
+		String SRC_YN = "N", SYNC_YN = "N", DST_YN = "N";
+		
+	    int APPR_SIZE = 0;
+	    
+	    //신청정보 저장(임시->신청)
+	    if(requestCmd.equals("REQFW_INTEGRATE_DETAIL_INSERT")){
+	    	
+	    	pm.setValue("TEMP_SAVE", "Y");
+	    	pm.setValue("EXCEL_TMP", "Y");
+			pm.setValue("APP_ID", pm.getString("EPID"));
+			pm.setValue("SUB_TAG", pm.getString("SUB_TAG"));
+			pm.setValue("SOURCE_GRP_YN", "N");
+			pm.setValue("SOURCE_TYPE", pm.getString("SOURCE_TYPE"));
+			pm.setValue("TARGET_GRP_YN", "N");
+			pm.setValue("TARGET_TYPE", pm.getString("TARGET_TYPE"));
+			pm.setValue("SOURCE", pm.getString("SOURCE"));
+			pm.setValue("TARGET", pm.getString("TARGET"));
+			pm.setValue("REG_USER_ID", pm.getString("REG_USER_ID"));
+			pm.setValue("REG_USER_NM", pm.getString("REG_USER_NM"));
+			pm.setValue("REG_USER_DEPT", pm.getString("REG_USER_DEPT"));
+			pm.setValue("REG_USER_NM_EN", pm.getString("REG_USER_NM_EN"));
+			pm.setValue("REG_USER_DEPT_EN", pm.getString("REG_USER_DEPT_EN"));
+			pm.setValue("REG_IP", pm.getString("REG_IP"));
+			
+			
+	    	String tmp_seq = pm.getString("TMP_SEQ");
+	    	String syncYn = pm.getString("SYNC_YN");
+	    	//IN 데이터 만들기
+			String[] tmp_seqArr = tmp_seq.split(",");
+			
+	    	for(int i=0; i<tmp_seqArr.length; i++){
+	    		pm.setValue("CMD", "REQFW_INTEGRATE_DETAIL_INSERT");
+	    		pm.setValue("REQFW_INTEGRATE_INSERT", "0");
+				pm.setValue("TMP_SEQ", tmp_seqArr[i]);
+				arrlist = (ArrayList)(remote.insert(pm));
+	    	}
+			
+			pm.setValue("CMD", "FW_INTEGRATE_LIST");
+			
+			arrlist2 = (ArrayList)remote.getList(pm);
+			crs2 = (CachedRowSet)arrlist2.get(0);
+			
+			if(crs2.size() > 0){
+				while(crs2.next()){
+					jsonObject = new JSONObject();
+					jsonObject.put("SEQ", crs2.getString("SEQ"));
+					jsonObject.put("REQ_NO", crs2.getString("REQ_NO"));
+					jsonObject.put("APP_ID", crs2.getString("APP_ID"));
+					jsonObject.put("SOURCE_GRP_YN", crs2.getString("SOURCE_GRP_YN"));
+					jsonObject.put("SOURCE_TYPE", crs2.getString("SOURCE_TYPE"));
+					jsonObject.put("TARGET_GRP_YN", crs2.getString("TARGET_GRP_YN"));
+					jsonObject.put("TARGET_TYPE", crs2.getString("TARGET_TYPE"));
+					jsonObject.put("SOURCE_CODE", crs2.getString("SOURCE_CODE"));
+					jsonObject.put("TARGET_CODE", crs2.getString("TARGET_CODE"));
+					jsonObject.put("SOURCE_TYPE_NM", crs2.getString("SOURCE_TYPE_NM"));
+					jsonObject.put("TARGET_TYPE_NM", crs2.getString("TARGET_TYPE_NM"));
+					jsonObject.put("SOURCE", crs2.getString("SOURCE"));
+					jsonObject.put("TARGET", crs2.getString("TARGET"));
+					jsonObject.put("REG_NM", crs2.getString("REG_NM"));
+					jsonObject.put("USER_NM", crs2.getString("USER_NM"));
+					jsonObject.put("USER_NM_EN", crs2.getString("USER_NM_EN"));
+					jsonObject.put("USER_ID", crs2.getString("USER_ID"));
+					jsonObject.put("PORT", crs2.getString("PORT"));
+					jsonObject.put("JOB", crs2.getString("JOB"));
+					jsonObject.put("REMARK", crs2.getString("REMARK"));
+					
+					jsonArray.add(jsonObject);
+				}
+			}
+			
+			jsonObject = new JSONObject();
+			jsonObject.put("STATUS", status);
+			jsonArray.add(jsonObject);
+			
+	    }else{
+	    	//임시 테이블 수정
+		    if(requestCmd.equals("REQFW_INTEGRATE_DETAIL_TEMP_UPDATE")){
+		    	pm.setValue("REMARK", pm.getString("REMARK"));
+				pm.setValue("JOB", pm.getString("JOB"));
+				pm.setValue("USER_ID", pm.getString("USER_ID"));
+				pm.setValue("USER_NM", pm.getString("USER_NM"));
+				pm.setValue("USER_NM_EN", pm.getString("USER_NM_EN"));
+				pm.setValue("TMP_SEQ", pm.getString("TMP_SEQ"));
+				pm.setValue("REQ_NO", pm.getString("REQ_NO"));
+				//crs3 = (CachedRowSet)((ArrayList)remote.update(pm)).get(0);
+				remote.update(pm);
+		    }else if(requestCmd.equals("REQFW_INTEGRATE_DETAIL_TEMP_DELETE")){
+				String tmp_seq = pm.getString("TMP_SEQ");
+				String[] tmp_seqArr = tmp_seq.split(",");
+				for(int i=0; i<tmp_seqArr.length; i++){
+					pm.setValue("TMP_SEQ", tmp_seqArr[i]);
+					remote.delete(pm);
+				}
+		    }
+	    	
+	    	
+		  //조회
+		  	pm.setValue("EXCEL_YN", "Y");
+			pm.setValue("CMD","FW_INTEGRATE_DETAIL_TEMP_LIST");
+			arrlist = (ArrayList)(remote.getList(pm));
+			
+			if(arrlist.size() != 0){
+				crs = (CachedRowSet)arrlist.get(0);
+				System.out.println("get templist crs.size : " + crs.size());
+				crs.beforeFirst();
+				
+				String strFrCompt_GrpCd = "";
+				String strToCompt_GrpCd = "";
+	            String endFrCompt_GrpCd = "";
+	            String endToCompt_GrpCd = "";
+	            String saveYN           = "N";
+	            String frCompt_GrpNM    = "";
+	            String toCompt_GrpNM    = "";
+	            String frCompt_NM       = "";
+	            String toCompt_NM       = "";
+	            String strReqNo         = "";
+	            int saveCnt             = 0;
+	            boolean FrChk			= false;
+	            
+				String url_comp_GrpCd = "";
+				String url_compCd = "";
+				String url_compNm = "";
+				String url_compNm_En = "";
+				String url_eq_cd1 = "";
+				String url_eq_cd2 = "";
+				String url_eq_cd3 = "";
+				String url_eq_cd4 = "";
+
+				APPR_SIZE =crs.size();
+				boolean ichk = true;
+				if(APPR_SIZE > 0){
+					for(int i = 0 ; crs.next() ; i++) {
+						jsonObject = new JSONObject();
+		            	String equipYN = crs.getString("EQUIP_YN").equals("Y") ? "YES" : "N/A";
+	                    String regMsg    = "";
+	                    String regMsg2   = "";
+	                    String strMsg    = "";
+	                    String isRegist  = "N";
+	            		
+	                    String tmp_seq = CommonUtil.NVL(crs.getString("TMP_SEQ"));
+						String sReqNo = CommonUtil.NVL(crs.getString("REQ_NO"));
+						String reqSource = CommonUtil.NVL(crs.getString("REQ_SOURCE"));
+						String reqTarget = CommonUtil.NVL(crs.getString("REQ_TARGET"));
+						String sourceType = CommonUtil.NVL(crs.getString("SOURCE_TYPE"));
+						String targetType = CommonUtil.NVL(crs.getString("TARGET_TYPE"));
+						String source = CommonUtil.NVL(crs.getString("SOURCE"));
+						String target = CommonUtil.NVL(crs.getString("TARGET"));
+						String port = CommonUtil.NVL(crs.getString("PORT").trim());
+						String sub_tag = CommonUtil.NVL(crs.getString("SUB_TAG"));
+						String job = CommonUtil.NVL(crs.getString("JOB"));
+						String remark = CommonUtil.NVL(crs.getString("REMARK"));
+						String equipYn = CommonUtil.NVL(crs.getString("EQUIP_YN"));
+						String regYn = CommonUtil.NVL(crs.getString("REG_YN"));
+						String message = CommonUtil.NVL(crs.getString("MESSAGE"));
+						String reqIp = CommonUtil.NVL(crs.getString("REQ_IP"));
+						String dxyn = CommonUtil.NVL(crs.getString("DXYN"));
+						String fr_comp_grp_cd = CommonUtil.NVL(crs.getString("FRCOMPT_GRPCD"));
+						String to_comp_grp_cd = CommonUtil.NVL(crs.getString("TOCOMPT_GRPCD"));
+						String fr_comp_cd = CommonUtil.NVL(crs.getString("FRCOMPT_CD"));
+						String to_comp_cd = CommonUtil.NVL(crs.getString("TOCOMPT_CD"));
+						String eq1_cd = CommonUtil.NVL(crs.getString("EQUIP1_CD"));
+						String eq2_cd = CommonUtil.NVL(crs.getString("EQUIP2_CD"));
+						String eq3_cd = CommonUtil.NVL(crs.getString("EQUIP3_CD"));
+						String eq4_cd = CommonUtil.NVL(crs.getString("EQUIP4_CD"));
+						
+						String msg2 = "";
+						
+						strFrCompt_GrpCd = fr_comp_grp_cd;
+						
+						if(targetType.equals("I") && ichk){
+							strToCompt_GrpCd = to_comp_grp_cd;
+	                    }
+						
+						String portStr = "";
+						String jobStr = "";
+						
+						if( port.length() > 5 ){
+							portStr = port.substring(0,4) + "...";
+						}else{
+							portStr = port;
+						}
+						
+						if( job.length() > 20 ){
+							jobStr = job.substring(0,18) + "...";
+						}else{
+							jobStr = job;
+						}
+						
+						if(targetType.equals("I")){
+							pm.setValue("CMD", "FW_COMPART_ID_YN_LIST");
+							pm.setValue("COMPT_CD", to_comp_cd);
+							ChkIP_Arlst = (ArrayList)remote.getList(pm);
+							ChkIp_Crs = (CachedRowSet)ChkIP_Arlst.get(0);
+							
+							jsonObject = new JSONObject();
+							if(ChkIp_Crs.next()){
+								DST_YN = ChkIp_Crs.getString("DST_YN");
+							}
+							
+							if( DST_YN.equals("Y")&&( strFrCompt_GrpCd.equals(crs.getString("FRCOMPT_GRPCD")) && strToCompt_GrpCd.equals(crs.getString("TOCOMPT_GRPCD")) )
+				                       || ( strFrCompt_GrpCd.equals(crs.getString("TOCOMPT_GRPCD")) && strToCompt_GrpCd.equals(crs.getString("FRCOMPT_GRPCD")) ) ) {
+				                isRegist = "Y";
+				            }else {
+				            	isRegist = "N";
+				            }
+						}else{
+							DST_YN = "Y";
+							if(strFrCompt_GrpCd.equals(crs.getString("FRCOMPT_GRPCD")) || strToCompt_GrpCd.equals(crs.getString("FRCOMPT_GRPCD")) ) {
+				                isRegist = "Y";
+				            }else {
+				            	isRegist = "N";
+				            }
+						}
+						
+						 
+						if(isRegist.equals("Y") && crs.getString("EQUIP_YN").equals("Y") && !crs.getString("CIP").trim().equals(crs.getString("TARGET").trim())) 
+		                {
+		                        
+							if(CommonUtil.NVL(getCompartment(crs.getString("CIP"), remote)[1]).equals(strIntegerGrpCd) && CommonUtil.NVL(getCompartment(crs.getString("TARGET"), remote)[1]).equals(strSecGrpCd))
+	                        {
+								regMsg = "FWL0200054_";
+								saveYN = "N";
+	                        }else if(!DST_YN.equals("Y")){
+	                        	regMsg = "NODST";
+	                        	saveYN = "N";
+	                        }else
+	                        {
+	                            regMsg = "FWL0200055_";
+//	                          regMsg  = "신청가능";// - "+frCompt_GrpNM+"("+frCompt_NM+") --> "+toCompt_GrpNM+"("+toCompt_NM+")";
+	                            regMsg2 =  regMsg; // regMsg.length() > 20 ? regMsg.substring(0, 16)+"...": regMsg ;
+	                            strMsg  = "";//"<a title='"+regMsg+"'>"+ regMsg2 +"</A>";
+	                            saveYN  = "Y";
+	                            saveCnt++;
+	                        }
+		                }else {
+	                        saveYN  = "N";
+	                        // ##### S/R No: D09020000693 CIP == SIP가 동일한 경우를 확인한다. #####
+	                        if(crs.getString("CIP").trim().equals(crs.getString("TARGET").trim()))
+	                        {
+	                            regMsg = "FWL0200056_";
+//	                          regMsg = "<font color='#FF0000'>신청불가<br>(동일한 IP)</font>";
+	                        }
+	                        // ##### S/R No: D09020000693 외부망에서 전자망신청을 확인한다. #####
+	                        else if(CommonUtil.NVL(getCompartment(crs.getString("CIP"), remote)[1]).equals(strIntegerGrpCd) &&
+	                        		CommonUtil.NVL(getCompartment(crs.getString("TARGET"), remote)[1]).equals(strSecGrpCd))
+	                        {
+	                            regMsg = "FWL0200054_";
+//	                          regMsg = "<font color='#FF0000'>신청불가<br>(외부에서 전자망접속)</font>";
+	                        }
+	                        else if( isRegist.equals("Y") ) {
+	                            regMsg = "FWL0200057_";
+//	                          regMsg = "<font color='#FF0000'>신청불가<br>(보안장비 없음)</font>";
+	                        } 
+	                        else if(!DST_YN.equals("Y")){
+	                        	regMsg = regMsg = "NODST";
+	                        }
+	                        else {
+	                            regMsg = "FWL0200058_";
+//	                          regMsg  = "<font color='#FF0000'>신청불가<br>(결재경로 다름)</font>";
+	                        }
+	                    }
+						
+						if(targetType.equals("I") && ichk && saveYN.equals("Y")){
+                    		strToCompt_GrpCd = CommonUtil.NVL(crs.getString("TOCOMPT_GRPCD"));
+                    		ichk = false;
+                    	}
+						
+						jsonObject.put("TMP_SEQ", tmp_seq);
+						jsonObject.put("REQ_NO", sReqNo); 
+						jsonObject.put("isRegist", isRegist);
+						jsonObject.put("SAVE_STATUS", saveYN);
+						jsonObject.put("SOURCE_TYPE", sourceType);
+						jsonObject.put("TARGET_TYPE", targetType);
+						jsonObject.put("REQ_SOURCE", reqSource);
+						jsonObject.put("REQ_TARGET", reqTarget);
+						jsonObject.put("SOURCE", source);
+						jsonObject.put("TARGET", target);
+						jsonObject.put("PORT", port);
+						jsonObject.put("STRPORT", portStr);
+						jsonObject.put("SUB_TAG", sub_tag);
+						jsonObject.put("JOB", job);
+						jsonObject.put("REMARK", remark);
+						jsonObject.put("EQUIP_YN", equipYn);
+						jsonObject.put("MESSAGE", message);
+						jsonObject.put("SYNC_YN", dxyn);
+						
+						jsonArray.add(jsonObject);
+					}
+				}
+	            
+			}else{
+				jsonObject = new JSONObject();
+				jsonObject.put("STATUS", status);
+				jsonArray.add(jsonObject);
+			}
+				
+	    }
+	    
+		
+		response.setContentType("application/json;charset=utf-8");
+		String resultJsonString = jsonArray.toJSONString();
+		out.clear(); // JSON 결과물의 앞 공백을 삭제
+		out.print(resultJsonString);
+		out.flush(); // JSON 결과물의 앞 공백을 삭제
+		
+	} catch (Exception e) {
+		e.printStackTrace();
+	}
+	
+%>
