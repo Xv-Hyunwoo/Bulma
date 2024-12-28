@@ -1,0 +1,384 @@
+<%
+/*******************************************************************
+*	Program ID	fwReqIdUpLoad.jsp
+*	Program Name	ID단위 CSV 업로드
+*	Description
+*
+*	Modified Log
+*
+*S/R No			작업일자		작업자	작업내용(제목)
+*	-------------------------------------------------------
+*				2023-08			초기작성
+********************************************************************/
+%>
+<%@ page language="java" contentType="text/html;charset=utf-8"%>
+<!-- java파일-->
+<%@ page import="java.sql.*"  %>
+<%@ page import="java.util.*"%>
+<%@ page import="java.rmi.*" %>
+<%@ page import="javax.rmi.*" %>
+<%@ page import="javax.ejb.*" %>
+<%@ page import="javax.naming.*" %>
+<%@ page import="sun.jdbc.rowset.*"%>
+<%@ page import="org.apache.log4j.*" %>
+
+<!-- 공통 라이브러리 -->
+<%@ page import="it4u.cmlib.util.*"%>
+<%@ page import="it4u.cmlib.db.*"%>
+<%@ page import="it4u.cmlib.param.*"%>
+<%@ page import="it4u.cmlib.startup.*"%>
+<%@ page import="it4u.cmlib.exception.*"%>
+
+<!-- 패키지  -->
+<%@ page import="it4u.it4u.common.util.*"%>
+<%@ page import="it4u.it4u.common.ejb.*"%>
+<%@ page import="it4u.it4u.helpzone.firewall.ejb.*"%>
+<jsp:useBean id="userInfo" class="it4u.it4u.common.util.UserInfo" scope="session"/>
+<%@ include file="/it4u/common/loginCheck.jsp" %>
+<%
+
+	String currdate = "",weekago="",REQ_NO="";	// 현재 페이지에서 사용할 변수 선언
+	int APPR_SIZE=0;
+
+	String CM_JNDI_NAME = "JNDI_It4uCommon";        // 공통 JNDI 이름을 지정한다.
+	String JNDI_NAME = "JNDI_It4uHelpzoneFirewall"; // 해당 JNDI 이름을 지정한다.
+
+	it4uCmHome 	cmhome;	                         // 사용할 공통 EJB의 Home, Remote Interface 를 선언한다.
+	it4uCm 		cmremote;
+
+	it4uHpFwHome 	home;	                        // 사용할 해당 EJB의 Home, Remote Interface 를 선언한다.
+	it4uHpFw 		remote;
+
+	Category	cat	= Category.getRoot();   // Debug를 위하여 사용한다.
+
+	try {
+		ParamModel pm = TransformParam.getParamModel(request);		 // 매개변수들을 HashMap에 넣어서 데이터 모델로 만든다.
+		pm.setValue("REQ_NO", CommonUtil.CheckChar(CommonUtil.decodeBySS(CommonUtil.rplc(pm.getString("REQ_NO"), "*", "+"))));
+		pm.setValue("ID_IP", pm.getString("CIP"));
+		String strUpMode = pm.getString("UP_MODE").trim();
+		String strFwUpCount = "200";
+		if(strUpMode.equals("EXTEND"))
+		{
+			strFwUpCount = "50";
+		}else if(strUpMode.equals("NEW_ID")){
+			strUpMode = "NEW";
+		}
+
+%>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link rel="stylesheet" type="text/css" href="/it4unew/css/basic.css">
+<!--공통부분추가S -->
+<%@include file="/jsp/common/conversions.inc"%>
+<!--공통부분추가E -->
+<title><%=getPro.getProperty("FWP0000008_",languageCodeForConversion)%> | IT4U </title>
+<style type='text/css'>image { cursor:hand; border:0 }</style>
+<SCRIPT LANGUAGE="JavaScript" src="/it4u/include/js/window.js"></SCRIPT>
+<!--// crossBrowsing 2022/05/10 추가-->
+<script language="Javascript" src="/html/common/showModalDialogCallee.js"></script>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+	
+	function AddRequest(){
+		var tempForm=document.file_upload_form;
+
+		if(tempForm.up_file.value==''){
+			alert('<%=getPro.getProperty("FWP0000009_",languageCodeForConversion)%>');
+//			alert('등록할 파일을 선택해 주십시오');			
+		}else{
+			var text=tempForm.up_file.value.split(".");
+			var f_type=text[(text.length-1)];
+			if(f_type.toLowerCase()=="csv"){
+				if( confirm('<%=getPro.getProperty("FWP0000010_",languageCodeForConversion)%>') ) {
+//				if( confirm("방화벽 임시저장시 양방향이나 포트가 숫자가 아닌경우\n\n저장시 자동으로 삭제처리됩니다.") ) {					
+					if("<%=pm.getString("UP_MODE").trim()%>" == "NEW_ID"){
+						tempForm.action ='/itvoc/it4u/firewall/fwReqIdUpLoad_prc.jsp';
+					}
+					tempForm.target = "worker";
+					tempForm.submit();
+					Btndisplay1.style.display="none";
+					Btndisplay2.style.display="";
+					Btndisplay3.style.display="";
+				}
+			}else{
+				alert('<%=getPro.getProperty("FWP0000011_",languageCodeForConversion)%>');
+//				alert('등록할 파일은 CSV파일만 가능합니다.');				
+			}
+		}
+	}
+
+	function CancelRequest(){
+		self.close();
+	}
+
+	function isSuccess() {
+		tempForm=document.file_upload_form;
+		for(var i = 0; i < tempForm.UP_MODE.length; i++)
+		{
+			if(tempForm.UP_MODE[i].checked)
+			{
+				if(browserIECheck()){
+					returnValue = tempForm.UP_MODE[i].value;
+				}else{
+					getDialogArguments();
+					var retValObj = {};
+					retValObj.retVal = tempForm.UP_MODE[i].value;
+					retValObj.args = dialogArguments;
+					setReturnValue(retValObj);
+				}
+			}
+		}
+		close();
+	}
+
+	function isFail() {
+		returnValue = "null";
+		close();
+	}
+
+	function closeLayer() {
+		Btndisplay1.style.display="none";
+		Btndisplay2.style.display="none";
+		Btndisplay3.style.display="";
+	}
+
+	function isSaveFail() {
+		alert('<%=getPro.getProperty("FWP0000012_",languageCodeForConversion)%> <%=getPro.getProperty("FWP0000013_",languageCodeForConversion)%> ');
+//		alert("파일업로드중 오류가 발생했습니다. 첨부파일 확인후 다시 올려주십시요.");	
+		returnValue = "null";
+		close();
+	}
+	function isCheckPortFail(portStr) {
+		if(portStr.length > 400){
+			alert("<%=getPro.getProperty("FWP0000105_",languageCodeForConversion)%>");
+			returnValue = "null";
+			close();
+		} else {
+			alert("<%=getPro.getProperty("FWP0000103_",languageCodeForConversion)%>");
+			returnValue = "null";
+			close();
+		}
+	}
+	function isCheckIpFail(ipStr) {
+		ipFormat(ipStr);
+		returnValue = "null";
+		close();
+	}
+	
+	function isCheckUrlFail(urlStr) {
+		//ipFormat(ipStr);
+		alert(urlStr+ " <%=getPro.getProperty("FWL1300078_",languageCodeForConversion)%>");  
+		returnValue = "null";
+		close();
+	}
+	
+	function isCheckIDFail(idStr){
+		alert(idStr+" <%=getPro.getProperty("FWL1300050_",languageCodeForConversion)%>");
+		returnValue = "null";
+		close();
+	}
+
+	function isCheckCntFail(){
+		alert("<%=getPro.getProperty("FWL1300077_",languageCodeForConversion)%>");  
+		returnValue = "null";
+		close();
+	}
+	
+	function ipFormat(ipStr){
+		var ips = ipStr.split(".");
+		if(ips.length!=4){
+			alert("<%=getPro.getProperty("FWL0100167_",languageCodeForConversion)%>");        
+			return;    
+		}else{
+			var tempCheck=false;
+			if(ips[0]>=0 && ips[0]<=255 ){
+			}else{
+				tempCheck=true;
+			}
+			if(ips[1]>=0 && ips[1]<=255 ){
+			}else{
+				tempCheck=true;
+			}
+			if(ips[2]>=0 && ips[2]<=255){
+			}else{
+				tempCheck=true;
+			}
+			if(ips[3]>=0 && ips[3]<=255 ){
+			}else{
+				tempCheck=true;
+			}
+			if(tempCheck){
+				alert("<%=getPro.getProperty("FWL0100180_",languageCodeForConversion)%>");        
+				return;   
+			}
+		}
+	}
+	<%-- ##### S/R No: D08040002734 신청에러목록 표시 iframe자동 조정. ##### --%>
+	function resizeFrame(iframeObj){
+		var innerBody = iframeObj.contentWindow.document.body;
+		oldEvent = innerBody.onclick;
+		innerBody.onclick = function(){ resizeFrame(iframeObj, 1);oldEvent; };
+
+		var innerHeight = innerBody.scrollHeight + (innerBody.offsetHeight - innerBody.clientHeight);
+		iframeObj.style.height = innerHeight + 15;
+	}
+//-->
+</SCRIPT>
+</head>
+
+<body onload="file_upload_form.up_file.focus()" class="noscroll">
+<form name="file_upload_form" method="post" action="fwReqUpLoad_prc.jsp" enctype="multipart/form-data">
+<table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#FFFFFF">
+<tr>
+	<td height="45" bgcolor="#D6DFE7" style="border-bottom-width:1px; border-bottom-color:rgb(147,165,181); border-bottom-style:solid;" class="margin"><b><span style="font-size:12pt;padding-left:10px;"><%=getPro.getProperty("FWP0000014_",languageCodeForConversion)%></span></b></td>
+<!-- <td height="45" bgcolor="#D6DFE7" style="border-bottom-width:1px; border-bottom-color:rgb(147,165,181); border-bottom-style:solid;" class="margin"><b><span style="font-size:12pt;">CSV 파일첨부</span></b></td> -->	
+</tr>
+</table>
+
+<span id="Btndisplay1" ><!--style="display:"-->
+<table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#FFFFFF">
+<tr>
+	<td align="center" height="99" style="padding-top:30;">
+		<!-- 첨부파일 S -->
+		<table cellpadding="0" cellspacing="0" border="0" width="380">
+			<%-- ##### S/R No: D08060002983 신청구분 추가 ##### --%>
+			<tr align="center" height="25">
+				<td width="100" nowrap><b><%=getPro.getProperty("FWL0200094_",languageCodeForConversion)%></b></td>
+<!-- <td width="70" nowrap><b>신청구분</b></td> -->				
+				<td align="left">
+					<label><input type="radio" name="UP_MODE" value="NEW" <%=strUpMode.equals("NEW") ? "checked":""%>><%=getPro.getProperty("FWP0000016_",languageCodeForConversion)%></label>
+<!-- <label><input type="radio" name="UP_MODE" value="NEW" <%=strUpMode.equals("NEW") ? "checked":""%>>신규</label> -->					
+					<label><input type="radio" name="UP_MODE" value="EXTEND" <%=strUpMode.equals("EXTEND") ? "checked":""%>><%=getPro.getProperty("FWP0000017_",languageCodeForConversion)%></label>
+<!-- <label><input type="radio" name="UP_MODE" value="EXTEND" <%=strUpMode.equals("EXTEND") ? "checked":""%>>연장</label> -->					
+					<label><input type="radio" name="UP_MODE" value="EXPIRE" <%=strUpMode.equals("EXPIRE") ? "checked":""%>><%=getPro.getProperty("FWP0000018_",languageCodeForConversion)%></label>
+<!-- <label><input type="radio" name="UP_MODE" value="EXPIRE" <%=strUpMode.equals("EXPIRE") ? "checked":""%>>해지</label> -->					
+				</td>
+			</tr>
+			<tr align="center" height="25">
+				<td width="100" nowrap><b><%=getPro.getProperty("FWP0000019_",languageCodeForConversion)%></b></td>
+<!-- <td width="70" nowrap><b>첨부파일</b></td> -->				
+				<td>
+					<table width="100%" cellpadding="0" cellspacing="0" border="0">
+					<tr align="center" height="25" width="450">
+						<td align="left" height="24"><INPUT TYPE="file" name='up_file' size="30" class="INPUT01"></td>
+					</tr>
+					</table>
+				</td>
+			</tr>
+		</table>
+		<!-- 첨부파일 E -->
+	</td>
+</tr><tr>
+	<td align="center" valign="top">
+		<!-- 버튼 S -->
+		<table cellpadding="0" cellspacing="0" width="350">
+		<tr>
+			<td width="490" align="center">
+				<% if(languageCodeForConversion.equals("KO")){ %>
+				<img src="/it4u/images/btn/btn_m_check.gif"		onClick = "javascript:AddRequest();"	alt="<%=getPro.getProperty("FWP0000020_",languageCodeForConversion)%>">
+				<%}else if(languageCodeForConversion.equals("EN")){%>
+				<img src="/it4u/images/btn/btn_m_check_en.gif"		onClick = "javascript:AddRequest();"	alt="<%=getPro.getProperty("FWP0000020_",languageCodeForConversion)%>">
+				<%}%>
+<!-- <img src="/it4u/images/btn/btn_m_check.gif"		onClick = "javascript:AddRequest();"	alt="신청"> -->
+				<% if(languageCodeForConversion.equals("KO")){ %>				
+				<img src="/it4u/images/btn/btn_m_cancel.gif"	onClick = "Javascript:CancelRequest();"	alt="<%=getPro.getProperty("FWP0000021_",languageCodeForConversion)%>">
+				<%}else if(languageCodeForConversion.equals("EN")){%>
+				<img src="/it4u/images/btn/btn_m_cancel_en.gif"	onClick = "Javascript:CancelRequest();"	alt="<%=getPro.getProperty("FWP0000021_",languageCodeForConversion)%>">
+				<%}%>
+<!-- <img src="/it4u/images/btn/btn_m_cancel.gif"	onClick = "Javascript:CancelRequest();"	alt="취소"> -->				
+			</td>
+		</tr>
+		</table>
+		<!-- 버튼 E -->
+	</td>
+</tr><tr>
+	<td align="center" height="50">
+		<table border="0" cellspacing="0" cellpadding="0" width="450" height="20">
+		<tr><br>
+			<td align="left" width="730" valign="bottom"><img src="/it4u/images/common/ico_arrow02.gif">&nbsp;<%=getPro.getProperty("FWP0000022_",languageCodeForConversion)%></td>
+<!-- <td width="726" valign="bottom" height="20">파일은 Comma(,)로 구분된 csv파일만 업로드 가능합니다.</td> -->			
+		</tr>
+		<tr>
+			<td align="left" width="730" valign="bottom"><img src="/it4u/images/common/ico_arrow02.gif">&nbsp;<%=getPro.getProperty("FWP0000023_",languageCodeForConversion)%></td>
+<!-- <td width="726" valign="bottom">파일업로드시 필히 <%=strFwUpCount%>건 이하로 등록해 주시기 바랍니다.</td> -->			
+		</tr>
+		<tr>
+			<td align="left" width="730" valign="bottom"><img src="/it4u/images/common/ico_arrow02.gif">&nbsp;<%=getPro.getProperty("FWP0000024_",languageCodeForConversion)%></td>
+<!-- <td width="726" valign="bottom">파일업로드시 파일내에서 반드시 중복체크를 먼저하시기 바랍니다.</td> -->			
+		</tr>
+		<tr>
+			<td align="left" width="730" valign="bottom"><img src="/it4u/images/common/ico_arrow02.gif">&nbsp;<%=getPro.getProperty("FWP0000025_",languageCodeForConversion)%></td>
+<!-- <td width="726" valign="bottom">데이터 중복시 신청 등록이 불가능합니다.</td> -->			
+		</tr>
+		<tr>
+			<td align="left" width="730" valign="bottom"><img src="/it4u/images/common/ico_arrow02.gif">&nbsp;<%=getPro.getProperty("FWP0000026_",languageCodeForConversion)%></td>
+<!-- <td width="726" valign="bottom">업로드시간은 10건(2분), 100건(10분), 200건(20분)입니다.</td> -->			
+		</tr>
+		<tr>
+			<td width="480" height="6" ></td>
+		</tr>
+		</table>
+	</td>
+</tr><tr>
+	<td height="26">
+		<table border="0" cellpadding="0" cellspacing="0" class="admin-closeBox">
+		<tr>
+			<td height="30"><img src="/it4u/images/common/copy_popup.gif"></td>
+			<% if(languageCodeForConversion.equals("KO")){ %>
+			<td align="right"><img src="/it4u/images/btn/btn_m_close.gif" alt="<%=getPro.getProperty("FWP0000028_",languageCodeForConversion)%>" onClick='window.close();'></td>
+			<%}else if(languageCodeForConversion.equals("EN")){%>
+			<td align="right"><img src="/it4u/images/btn/btn_m_close_en.gif" alt="<%=getPro.getProperty("FWP0000028_",languageCodeForConversion)%>" onClick='window.close();'></td>
+			<%}%>
+<!-- <td align="right"><img src="/it4u/images/btn/btn_m_close.gif" alt="창닫기" onClick='window.close();'></td> -->			
+		</tr>
+		</table>
+	</td>
+</tr>
+</table>
+</span>
+<!-- file upload image Start-->
+<span id="Btndisplay2" style="display:none">
+<table  width='490'>
+<tr align=center><td class="tdata"><%=getPro.getProperty("FWP0000027_",languageCodeForConversion)%></TD></tr>
+<!-- <tr align=center><td class="tdata">파일 업로드 및 처리중...잠시만 기다려 주십시오.</TD></tr> -->
+<tr align=center><td class="tdata"><center><img SRC="/it4u/images/loadingbar_red.gif" WIDTH="259" HEIGHT="44"></center></TD></tr>
+</table>
+</span>
+<span id="Btndisplay3" style="display:none">
+<table  width='100%'>
+<tr align=center><td class="tdata" align="center"><iframe name="worker" width="490" height="100" frameborder="0" scrolling='no' onload="resizeFrame(this)"></iframe></TD></tr>
+</table>
+</span>
+<!-- file upload image End-->
+<!-- hidden 값-->
+<INPUT TYPE="hidden" name="JOB_GRP_ID" value="<%=pm.getString("JOB_GRP_ID")%>">
+<INPUT TYPE="hidden" name="OP_GRP_NO" value="<%=pm.getString("OP_GRP_NO")%>">
+<INPUT TYPE="hidden" name="REQ_ID" value="<%=CommonUtil.encodeBySS(userInfo.getUniqueID())%>">
+<INPUT TYPE="hidden" name="CMD">
+<INPUT TYPE="hidden" name="REQ_NO" value="<%=CommonUtil.encodeBySS(pm.getString("REQ_NO"))%>">
+<INPUT TYPE="hidden" name="CIP" value="<%=pm.getString("CIP")%>">
+<INPUT TYPE="hidden" name="REQ_LANG" value="<%=CommonUtil.encodeBySS(userInfo.getUserLang())%>">
+<INPUT TYPE="hidden" name="REQ_COCD" value="<%=CommonUtil.encodeBySS(userInfo.getCoCd())%>">
+</form>
+</body>
+</html>
+<%
+	}
+	catch (RemoteException re)
+	{
+		EJBRuntimeException ee = (EJBRuntimeException) re.detail;
+		cat.error(re.getMessage());
+		HtmlManager.printAlertScript(out, MessageHandler.getMessage("CM2000"));
+	}
+	catch (EJBRuntimeException ee)
+	{
+		cat.error(ee.getMessage());
+		HtmlManager.printAlertScript(out, MessageHandler.getMessage("CM2000"));
+	}
+	catch (Exception e)
+	{
+		cat.error(e.getMessage());
+		HtmlManager.printAlertScript(out, MessageHandler.getMessage("CM2000"));
+	}
+%>
