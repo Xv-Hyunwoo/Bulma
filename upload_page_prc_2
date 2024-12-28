@@ -1,0 +1,221 @@
+<html>
+<head>
+<title><%=getPro.getProperty("FWP0000040_",languageCodeForConversion)%></title> <!-- 방화벽등록 - CSV일괄등록 -->
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link rel="stylesheet" type="text/css" href="/it4unew/css/basic.css">
+
+<SCRIPT LANGUAGE="JavaScript" src="/it4u/include/js/window.js"></SCRIPT>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+
+	function CancelRequest(){
+		self.close();
+	}
+
+	function isSuccess() {
+			returnValue = "<%=strUpMode%>";
+		close();
+	}
+
+	function isFail() {
+		returnValue = "null";
+		close();
+	}
+
+	function setLoad(){
+		closeLayer();
+	}
+
+	function closeLayer() {
+		parent.closeLayer();
+	}
+
+	function doConfirm() {
+<%
+	if( !isSuccess ) {
+%>
+		parent.isFail();
+<%
+	} else {
+%>
+		parent.isSuccess();
+<%
+	}
+%>
+	}
+
+//-->
+</SCRIPT>
+</head>
+<body leftmargin=0 topmargin=0 bgcolor="#FFFFFF" text="#000000" onLoad="JavaScript:setLoad();">
+<form name="fwReqUpLoad_prc_form" method="post">
+<table border='0' cellpadding='0' cellspacing='0' width='100%'>
+<!--tr>
+<td height='45' bgcolor='#D6DFE7' style='border-bottom-width:1px; border-bottom-color:rgb(147,165,181); border-bottom-style:solid;' class='margin'>
+	<b><span style='font-size:12pt;'>도메인네임 상태조회</span></b>
+</td>
+</tr-->
+<tr><td valign='bottom' height='20'>&nbsp;</td>
+</tr><tr>
+	<td align='center' valign='top' height='100%'>
+		<!-- 검색헤더 S -->
+		<table cellpadding='0' cellspacing='0' width='100%'>
+		<tr>
+			<td width='100%'>
+				<table cellpadding='0' cellspacing='0' width='100%'>
+				<tr><td background='/it4u/images/common/titb1_bg.gif' height='20'><b><%=getPro.getProperty("FWP0000039_",languageCodeForConversion)%></b></td></tr> <!-- 방화벽 등록불가 및 중복데이타 -->
+				</table>
+
+				<table width='480' border='0' cellspacing='0' cellpadding='0'>
+				<tr><td width='480' height='3' colspan='7' align='center' class='tbl-top'></td></tr>
+				<tr>
+					<td align='center' class='tbl-new01' width="100"height='35' style="padding-left:0px !important;">출발지</td> <!-- 사용자IP -->
+					<td align="center" class="tbl-new01" width="1" valign="top"><img src="/it4u/images/etc/table_cell.gif"></td>
+					<td align='center' class='tbl-new01' width="100" style="padding-left:0px !important;"><%=getPro.getProperty("FWL0100039_",languageCodeForConversion)%></td> <!-- 목적지 -->
+					<td align="center" class="tbl-new01" width="1" valign="top"><img src="/it4u/images/etc/table_cell.gif"></td>
+					<td align='center' class='tbl-new01' width="60" style="padding-left:0px !important;"><%=getPro.getProperty("FWL0100050_",languageCodeForConversion)%></td> <!-- 포트 -->
+					<td align="center" class="tbl-new01" width="1" valign="top"><img src="/it4u/images/etc/table_cell.gif"></td>
+					<td align='center' class='tbl-new01' width="auto" style="padding-left:0px !important;"><%=getPro.getProperty("FWL0300058_",languageCodeForConversion)%></td> <!-- 비고 -->
+				</tr>
+				</table>
+				<div style="width:480px;height:115px;overflow-y:auto; overflow-x:hidden;">
+				<table width='480' border='0' cellspacing='0' cellpadding='0'>
+					<colgroup>
+						<col width="100px" />
+						<col width="1px" />
+						<col width="100px" />
+						<col width="1px" />
+						<col width="60px" />
+						<col width="1px" />
+						<col width="*" />
+					</colgroup>
+					<tbody>
+<%
+	if( rtnCnt > 0 ) {
+		for( int i = 0 ; i < rtnCnt ; i++ ) {
+			rtnStr = (String[])rtnVec.elementAt(i);
+			if( rtnStr[0].equals("comma") ) {
+%>
+				<tr height='23'>
+					<td align="center" class="tbl-new03" colspan="7" ><%= rtnStr[3] %></td>
+				</tr>
+<%
+			}	else	{
+				String  tempPort = rtnStr[2];
+				if(tempPort.length() > 4 ){
+					tempPort = tempPort.substring(0,4) + "...";
+				}
+%>
+				<tr height='23'>
+					<td align="center" class="tbl-new03"><%= rtnStr[0] %></td>
+					<td align="center" class="tbl-line" width="1"></td>
+					<td align="center" class="tbl-new03"><%= rtnStr[1] %></td>
+					<td align="center" class="tbl-line" width="1"></td>
+					<td align="center" class="tbl-new03"><A title="<%= rtnStr[2] %>">&nbsp;<%= tempPort %></A></td>
+					<td align="center" class="tbl-line" width="1"></td>
+					<td align="center" class="tbl-new03"><%= rtnStr[3] %></td>
+				</tr>
+<%
+			}
+		}//end of for
+	}	else	{
+%>
+				<tr  height="23" align="center">
+<%		if(maxSize > iMaxCnt) { %>
+					<td class="tbl-new03" colspan="7" height="23" align="center">&lt;<%=getPro.getProperty("FWP0000040_",languageCodeForConversion)%>&gt; </td>
+<!-- <td class="tbl-new03" colspan="7" height="23" align="center">&lt;업로드파일은 <%=iMaxCnt%>건이하로 등록해주세요.&gt; </td> -->
+<%		} else { %>
+					<td class="tbl-new03" colspan="7" height="23" align="center">&lt;<%=getPro.getProperty("FWP0000041_",languageCodeForConversion)%>&gt; </td>
+<!-- <td class="tbl-new03" colspan="7" height="23" align="center">&lt;중복된 데이터가 없습니다.&gt; </td> -->					
+<%		} %>
+				</tr>
+<%
+	}
+%>				</tbody></table></div>
+			</td>
+		</tr>
+		</table>
+	</td>
+</tr>
+<tr>
+	<td height="26" align='center' style='padding-top:5px;'><img src='/it4u/images/btn/btn_check<%if(!"KO".equals(languageCodeForConversion)){out.println("_EN");} %>.gif' alt='<%=getPro.getProperty("FWP0000042_",languageCodeForConversion)%>' align="absmiddle" onClick="javascript:doConfirm();" style="cursor: hand"></td>
+<!-- <td height="26" align='center'><img src='/it4u/images/btn/btn_check.gif' alt='확인' align="absmiddle" alt="확인" onClick="javascript:doConfirm();" style="cursor: hand"></td> -->	
+</tr>
+<tr><td align='center' valign='top' height='5'></td></tr>
+<!-- <tr><td align='center' valign='top' height='30'>&nbsp; </td></tr> -->
+<tr>
+	<td height='26' bgcolor='#E8E8E8'>
+		<table border='0' cellpadding='3' cellspacing='0' width='100%'>
+		<tr>
+			<td height='30'><img src='/it4u/images/common/copy_popup.gif'></td>
+	
+		</tr>
+		</table>
+	</td>
+</tr>
+</table>
+</form>
+</body>
+</html>
+<%
+double day2day = ((endTime - startTime) * 0.01);
+//System.out.println("day2day============>"+day2day);
+
+	}catch (RemoteException re){
+		re.printStackTrace();
+		EJBRuntimeException ee = (EJBRuntimeException) re.detail;
+
+		cat.error(re.getMessage());
+		isSaveFail = true;
+	}catch (EJBRuntimeException ee){
+		ee.printStackTrace();
+		cat.error(ee.getMessage());
+		isSaveFail = true;
+	}catch (Exception e){
+		e.printStackTrace();
+		cat.error(e.getMessage());
+		isSaveFail = true;
+	}
+
+	if( isSaveFail ) {
+%>
+<SCRIPT language="JavaScript">
+	parent.isSaveFail();
+</SCRIPT>
+<%  } 
+	if( !checkIpFg ) {
+%>
+<SCRIPT language="JavaScript">
+	parent.isCheckIpFail('<%=errIpStr%>');
+</SCRIPT>
+<%  } 
+	if( !checkRealUserFg ) {
+%>
+<SCRIPT language="JavaScript">
+	parent.isCheckUserFail('<%=errRealUserStr%>');
+</SCRIPT>
+<%  } 
+	if( !checkUrlFg ) {
+%>
+<SCRIPT language="JavaScript">
+	parent.isCheckUrlFail('<%=errUrlStr%>');
+</SCRIPT>
+<%  } 	
+	if( !checkPortFg ) {
+%>
+<SCRIPT language="JavaScript">
+	parent.isCheckPortFail('<%=errPortStr%>');
+</SCRIPT>
+<%  }
+	if( !checkSourceFg ) {
+	%>
+<SCRIPT language="JavaScript">
+	parent.isCheckIDFail('<%=errIDStr%>');
+</SCRIPT>
+<%  }
+	if( !checkCntFg ) {
+	%>
+<SCRIPT language="JavaScript">
+	parent.isCheckCntFail();
+</SCRIPT>
+<%  }%>
