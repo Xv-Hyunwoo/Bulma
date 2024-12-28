@@ -1,0 +1,799 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<% 
+/************************************************************************************************************
+*   Program ID      fwReqIdUp_min.jsp
+*   Program Name    방화벽 ID CSV 신청
+*   Description
+*   Modified Log
+*
+*S/R No         작업일자        작업자     작업내용
+*------------------------------------------------------------------------------------------------------------
+*               2023-07-05     서민지   ID기반 방화벽신청 개발
+
+*************************************************************************************************************/
+%>
+<%@ page language="java" contentType="text/html;charset=utf-8"%>
+<!-- java파일-->
+<%@ page import="java.sql.*"  %>
+<%@ page import="java.util.*"%>
+<%@ page import="java.rmi.*" %>
+<%@ page import="javax.rmi.*" %>
+<%@ page import="javax.ejb.*" %>
+<%@ page import="javax.naming.*" %>
+<%@ page import="sun.jdbc.rowset.*"%>
+<%@ page import="org.apache.log4j.*" %>
+<!-- 공통 라이브러리 -->
+<%@ page import="it4u.cmlib.util.*"%>
+<%@ page import="it4u.cmlib.db.*"%> 
+<%@ page import="it4u.cmlib.param.*"%>
+<%@ page import="it4u.cmlib.startup.*"%>
+<%@ page import="it4u.cmlib.exception.*"%>
+<!-- 패키지  -->
+<%@ page import="it4u.it4u.common.util.*"%>
+<%@ page import="it4u.it4u.common.ejb.*"%>
+<%@ page import="it4u.it4u.helpzone.firewall.ejb.*"%>
+<%@ page import="gitvoc.common.esb.*" %>
+<jsp:useBean id="userInfo" class="it4u.it4u.common.util.UserInfo" scope="session"/>
+<%@ include file="/jsp/new/common/ginc/glob_system_svc.jsp" %>
+<%@ include file="/it4u/common/loginCheck.jsp" %>
+<!-- 공통1 부분 추가S -->
+<%@ include file="/it4u/common/common.jsp" %>
+<!-- <script src="./assets/js/jquery-3.6.1.min.js"></script> -->
+<!-- 공통1 부분 추가E -->
+
+<%
+	response.setHeader ("Pragma", "No-cache");
+	response.setDateHeader ("Expires", 0);
+	response.setHeader ("Cache-Control", "no-cache");
+    //현재 페이지 사용변수
+    String currdate = "",weekago="",start_dt="",end_dt="",app_status="",prc_status="",app_gubun="";
+    String threedayago = "";
+    String REQ_NO = "";
+    int CURR_PAGE = 0;
+    
+    // 공통 JNDI 이름을 지정한다.
+    String CM_JNDI_NAME = "JNDI_It4uCommon";
+    // 해당 JNDI 이름을 지정한다.
+    String JNDI_NAME = "JNDI_It4uHelpzoneFirewall";
+
+    // 사용할 공통 EJB의 Home, Remote Interface 를 선언한다.
+    it4uCmHome cmhome;
+    it4uCm     cmremote;
+
+    // 사용할 해당 EJB의 Home, Remote Interface 를 선언한다.
+    it4uHpFwHome home;
+    it4uHpFw     remote;
+
+    // Debug를 위하여 사용한다.
+    Category    cat = Category.getRoot();
+    try {
+        ArrayList cmarrayList = null, arrayList = null;
+
+        // 매개변수들을 HashMap에 넣어서 데이터 모델로 만든다.
+        ParamModel pm = TransformParam.getParamModel(request);
+        // JNDI 이름으로 컴포넌트를 찾는다.
+        PropertyManager pmgr = PropertyManager.getInstance();
+        Properties pt = new Properties();
+        pt.put(Context.INITIAL_CONTEXT_FACTORY, (String)(pmgr.getProperty("SYS_FACTORY")));
+        pt.put(Context.PROVIDER_URL, (String)(pmgr.getProperty("SYS_URL")));
+        Context ctx = new InitialContext(pt);
+        JndiManager jm = JndiManager.getInstance();
+        Object cmobj = (it4uCmHome)ctx.lookup((String)(jm.getProperty(CM_JNDI_NAME)));
+        Object obj = (it4uHpFwHome)ctx.lookup((String)(jm.getProperty(JNDI_NAME)));
+        cmhome = (it4uCmHome)PortableRemoteObject.narrow(cmobj, it4uCmHome.class);
+        cmremote = cmhome.create();
+
+        home = (it4uHpFwHome)PortableRemoteObject.narrow(obj, it4uHpFwHome.class);
+        remote=home.create();
+
+        //현재날짜를 얻어온다.
+        pm.setValue("CMD", "GETDATE");
+        CachedRowSet cmcrs = (CachedRowSet)((ArrayList)cmremote.getData(pm)).get(0);
+
+        cmcrs.beforeFirst();
+
+        if (cmcrs.next()) {
+            currdate = (String) cmcrs.getString("CURRDATE");
+            weekago = (String) cmcrs.getString("WEEKAGO");
+            threedayago = (String) cmcrs.getString("THREEDAYAGO");
+        }
+
+        //신청번호를 얻어온다.
+        pm.setValue("CMD", "REQUEST_NO");
+        pm.setValue("CODE", "F");
+
+        CachedRowSet crs = (CachedRowSet)((ArrayList)cmremote.getData(pm)).get(0);
+
+        crs.beforeFirst();
+
+        if (crs.next()) {
+            REQ_NO = (String) crs.getString(1);
+        }
+
+        String strUpMode = pm.getString("UP_MODE").trim();
+        if(strUpMode.equals(""))
+        {
+            strUpMode = "NEW_ID";
+        }
+        
+        //뒤로가기버튼과 목록버튼 구분(20070112)
+        String BackFlag =CommonUtil.NVL(pm.getString("BackFlag"), "N");
+        if(BackFlag.equals("N")){
+            BackFlag = pm.getString("BackFlag");
+            session.setAttribute("BackFlag", "N");
+        } else {
+            BackFlag = (String)session.getAttribute("BackFlag");            
+        }
+
+
+        //검색조건 초기화
+        if(pm.getString("START_DT").equals("")){
+//          start_dt=weekago;
+            start_dt = threedayago;
+        }else{
+            start_dt=pm.getString("START_DT");
+        }
+        if(pm.getString("END_DT").equals("")){
+            end_dt=currdate;
+        }else{
+            end_dt=pm.getString("END_DT");
+        }
+        if(pm.getString("APP_STATUS").equals("")){
+            app_status="2";
+        }else{
+            app_status=pm.getString("APP_STATUS");
+        }if(pm.getString("APP_GUBUN").equals("")){
+            app_gubun="A";
+        }else{
+            app_gubun=pm.getString("APP_GUBUN");
+        }
+        if(pm.getString("PRC_STATUS").equals("")){
+            prc_status="A";
+        }else{
+            prc_status=pm.getString("PRC_STATUS");
+        }
+        
+        CURR_PAGE = Integer.parseInt(CommonUtil.NVL(pm.getString("CURR_PAGE"),"1"));
+
+        String strFirstPage = (null == pm.getString("FT_LOAD") ? "false" : "true");
+        //2022-11-17  부서장 결재자 검색하여 부서장 정보를 가져온다.
+		//EsbUser esbUser = new EsbUser();
+		//String leaderUserInfo = esbUser.getDefaultApprover(userInfo.getCoCd(),userInfo.getPDeptCd());
+%>
+
+<html>
+<head>
+    <meta charset="UTF-8">
+    <!-- <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> -->
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8/">
+    <title>IT인증기반 방화벽신청기능개발</title>
+    
+    <!--공통부분추가S -->
+    <%@include file="/jsp/common/conversions.inc"%>
+
+    <!--공통부분추가E -->
+    <script language="javascript" src="/it4u/include/js/menu.js"></script>
+	<script language="javascript" src="/it4u/include/js/window.js"></script>
+	<script language="Javascript" src="/html/common/showModalDialog.js"></script>
+    <script src="./assets/js/all.min.js"></script>
+    <script src="./assets/js/bulma-steps.js"></script>
+    <script src="./assets/js/bulma-calendar.min.js"></script>
+    <script src="./assets/js/bulma-toast.min.js"></script>
+    <script src="./assets/js/app.js"></script>
+
+    <link rel="stylesheet" href="./assets/css/all.min.css">
+    <link rel="stylesheet" href="./assets/css/bulma.min.css">
+    <link rel="stylesheet" href="./assets/css/bulma-steps.min.css">
+    <link rel="stylesheet" href="./assets/css/bulma-calendar.min.css">
+    <link rel="stylesheet" href="./assets/css/animate.min.css">
+    <link rel="stylesheet" href="./assets/css/app.css">
+
+    <link rel="icon" href="./assets/favicon/favicon.ico" type="image/x-icon">
+
+	<style>
+	
+       ::-webkit-scrollbar {
+           width: 8px;
+           height: 8px;
+       }
+
+       ::-webkit-scrollbar-thumb {
+           border-radius: 10px;
+           background-color: #555;
+       }
+ 	   
+ 	   .userTdClass {
+ 	   	   width: 100px;
+     	   text-overflow: ellipsis;
+     	   overflow: hidden;
+     	   white-space: nowrap;
+     	   vertical-align: middle !important;
+    	}
+
+		.table-scrollable {
+			width: 800px;
+			display: block;
+			white-space: nowrap;
+			overflow: auto;
+		}
+		
+	   </style>
+	    
+<script language="JavaScript" type="text/javascript" >
+    __apmPageId__ = 'IT4U003'; 
+    __apmIp__ = '<%=request.getRemoteAddr() %>';
+    __apmHost__ = '<%=request.getRemoteHost() %>';
+
+    var lang = "<%=languageCodeForConversion%>";
+    
+    window.onload = function(){
+    	IpYNCheck();
+    };
+    
+    var startDate;
+    var endDate;
+    var name;
+    var cip;
+    var selectType;
+    var totalcnt;
+    var rowcount = 0;
+	var saveCnt = 0;
+	
+	//접속 IP가 신청 가능한 IP인지 체크
+    function IpYNCheck(){
+    	var cip = "<%=request.getRemoteAddr() %>"; //"10.90.132.13"
+    	$.ajax({
+	    	type: "GET",
+	    	url: "/itvoc/it4u/firewall/fwReqIdUp_min_fvl.jsp", //url: "/itvoc/esp/jsp/proxy/webReq_upload_IF.jsp", //
+	    	cache: false, // cache가 true일 때 Ajax 서버 프로그램(.jsp)을 변경해도 반영되지 않는 이슈가 있어 false로 설정한다.
+	    	dataType : "json",	
+	    	data: {
+	    		CMD     : "FW_COMPART_ID_YN_LIST",
+	    		CIP		: cip
+	    	},
+	    	async: false, // 비동기 방식으로 ajax 응답을 받을 경우 프로세스상 문제가 발생하여 [async : false] 방식으로 처리한다. 
+	    	success: function(data) {
+	    		if(data[0].SRC_YN != "Y" && cip!="10.32.253.135"){
+	    		//if(data[0].SRC_YN == "N"){
+	    			self.location.href="fwReqId_warning.jsp?JOB_GRP_ID=HFF&OP_GRP_NO=G003&MN_ID=HFF2&MN_LVL=3&URL=fwReq_min.jsp&CIP="+cip;
+	    		}
+	    		var sync = "N";
+	    		if(data[0].SYNC_YN == "Y"){
+	    			sync = data[0].SYNC_YN ;
+	    		}
+	    		
+	    		$("#SYNC_YN").val(sync);
+	    	},
+	    	error:function(request,status,error){        
+	    		console.log(error); 
+		    	var toastParams = { msgType : "is-danger", msgPosition : "top-center", msgContent :'<%=getPro.getProperty("FWL1300082_",languageCodeForConversion)%>\n<%=getPro.getProperty("FWL2202004_",languageCodeForConversion)%>', };
+				renderToast(toastParams); 
+	        	return;
+	    	}
+	    });
+    }
+	
+    function fileUpload(){
+        tempForm =  document.fwReq_min_form;
+        <%-- ##### S/R No: D08060002983 UP_MODE추가. ##### --%>
+        var url =  "fwReqIdUpLoad.jsp?REQ_NO=<%= CommonUtil.rplc(CommonUtil.encodeBySS(REQ_NO), "+", "*") %>&UP_MODE=<%=strUpMode%>&CIP="+$("#CIP").val();
+    	// crossBrowsing 2022/05/10 추가
+    	openModal(url, '', '520', '320', 'auto', 'setFileUploadReturnFunction');
+        //openModal(url, '', '520', '320', 'auto');
+
+    	if(returnValue != null) {
+    		if( returnValue == "NEW" ) {
+    			<%--alert("데이타가 정상적으로 저장되었습니다.");--%>
+    			searchReqFWTemp(returnValue);
+    		}
+    		else {
+    			<%--alert("화면을 비정상적으로 닫으셨거나, \n\n 임시저장중 문제가 발생했습니다. 관리자에게 문의하십시요.");--%>
+    			searchReqFWTemp(returnValue);
+    		}
+    	}
+    }
+    
+    function setFileUploadReturnFunction(returnValueObj){
+    	var obj = returnValueObj.args;
+    	var returnValue = returnValueObj.retVal;
+
+    	if( returnValue == "NEW" ) {
+            <%--alert("데이타가 정상적으로 저장되었습니다.");--%>
+            searchReqFWTemp(returnValue);
+        }
+        else {
+            <%--alert("화면을 비정상적으로 닫으셨거나, \n\n 임시저장중 문제가 발생했습니다. 관리자에게 문의하십시요.");--%>
+            searchReqFWTemp(returnValue);
+        }
+    }
+    
+    function searchReqFWTemp(up_mode) {
+    	$("#UP_MODE").val(up_mode);
+    	$.ajax({
+	    	type: "GET",
+	    	url: "/itvoc/it4u/firewall/fwReqUnifyTempPopUp_min_fvl.jsp", //url: "/itvoc/esp/jsp/proxy/webReq_upload_IF.jsp", //
+	    	cache: false, // cache가 true일 때 Ajax 서버 프로그램(.jsp)을 변경해도 반영되지 않는 이슈가 있어 false로 설정한다.
+	    	dataType : "json",	
+	    	data: {
+	    		REQ_NO  : "<%=REQ_NO%>",
+	    			//NEWREQ  : NEWREQ,
+	    		CMD     : "REQFW_ID_TEMP_SELECT"
+	    	},
+	    	async: false, // 비동기 방식으로 ajax 응답을 받을 경우 프로세스상 문제가 발생하여 [async : false] 방식으로 처리한다. 
+	    	success: function(data) {
+				console.log("csv return data",data)
+	    		SearchList(data);
+	    	},
+	    	error:function(request,status,error){        
+	    		console.log(error); 
+		    	var toastParams = { msgType : "is-danger", msgPosition : "top-center", msgContent :'<%=getPro.getProperty("FWL1300082_",languageCodeForConversion)%>\n<%=getPro.getProperty("FWL2202004_",languageCodeForConversion)%>', };
+				renderToast(toastParams); 
+	        	return;
+	    	}
+	    });
+    }
+    
+    function SearchList(data){
+		for(var i=0; i<rowcount; i++){
+        	$("#app_search_tr_"+i).remove();
+        }
+		var ycnt=0;
+		rowcount = 0;
+		if(data.length > 0 ){
+			
+			if (data.length > 15) $(".table-scrollable").css('height', '400px'); 
+			$("#app_no_tr").css("display", 'none');
+			saveCnt = 0;
+			for (i = 0; i < data.length; i++) {
+				if(data[i].List == "Y"){
+					var text = "";
+	                text = "<tr class=\"is-vcentered has-text-centered is-size-7\" id='app_search_tr_" + rowcount +"'>";
+	                if(data[i].SAVE_YN == "Y"){
+	                	//text +=  	"<td><input type='checkbox' id='DEL_CHECK_"+rowcount+"' name='DEL_CHECK_"+rowcount+"' value='"+rowcount+"' onClick='javascript:CheckSelect("+rowcount+")'></td>";
+	                	text +=  	"<td><input type='checkbox' id='DEL_CHECK_"+rowcount+"' name='DEL_CHECK_"+rowcount+"' value='"+rowcount+"'></td>";
+	                	saveCnt = parseInt(saveCnt)+1;
+	                }else{
+	                	text +=  	"<td><input type='checkbox' id='DEL_CHECK_"+rowcount+"' name='DEL_CHECK_"+rowcount+"' value='"+rowcount+"' disabled></td>";
+	                }
+	                text += 	"<td >"+(ycnt+1)+"</td>";
+	                text += 	"<td > <a href='javascript:CheckSelect("+rowcount+")'>"+data[i].APP_ID+"</td>";
+	                text += 	"<td class='userTdClass'>"+data[i].TARGET+"</a></td>";
+	                text += 	"<td class='userTdClass'>"+data[i].STRPORT+"</td>";
+	                text += 	"<td class='userTdClass'>"+data[i].REMARK+"</td>";
+	                text += 	"<td class='userTdClass'>"+data[i].JOB+"</td>";
+	                text += 	"<td class='userTdClass'>"+data[i].EQUIP_YN+"</td>";
+	                text += 	"<td class='userTdClass'>"+setMsg(data[i].MSG)+"</td>";
+	                //text +=  	"<td><input type='checkbox' id='DEL_CHECK_"+rowcount+"' name='DEL_CHECK_"+rowcount+"' value='"+rowcount+"' onClick='javascript:CheckSelect("+rowcount+")'></td>";
+	                text += 	"<td style='display:none;'><input type='hidden' name='PORT_"+ycnt+"' value='"+data[i].PORT+"'>"+data[i].PORT+"</td>";
+	                text += 	"<td style='display:none;'><input type='hidden' name='JOB_"+ycnt+"' value='"+data[i].JOB+"'>"+data[i].JOB+"</td>";
+	                text += 	"<td style='display:none;'><input type='hidden' name='REQ_GBN_"+ycnt+"' value='"+data[i].REQ_GBN+"'>"+data[i].REQ_GBN+"</td>";
+	                text += 	"<td style='display:none;'><input type='hidden' name='SAVE_YN_"+ycnt+"' value='"+data[i].SAVE_YN+"'>"+data[i].SAVE_YN+"</td>";
+	                text += 	"<td style='display:none;'><input type='hidden' name='TMP_SEQ_"+ycnt+"' value='"+data[i].TMP_SEQ+"'>"+data[i].TMP_SEQ+"</td>";
+	                text += 	"<td style='display:none;'><input type='hidden' name='REQ_NO_"+ycnt+"' value='"+data[i].REQ_NO+"'>"+data[i].REQ_NO+"</td>";
+	                text += 	"<td style='display:none;'><input type='hidden' id='FW_"+ycnt+"' name='FW_"+ycnt+"' value='ON' >ON</td>";
+	                text += 	"<td style='display:none;'><input type='hidden' name='APP_ID_"+ycnt+"'value='"+data[i].APP_ID+"'>"+data[i].APP_ID+"</td>";
+	                text += 	"<td style='display:none;'><input type='hidden' name='CIP_"+ycnt+"' value='"+data[i].CIP+"'>"+data[i].CIP+"</td>";
+	                text += 	"<td style='display:none;'><input type='hidden' name='TARGET_"+ycnt+"' value='"+data[i].TARGET+"'>"+data[i].TARGET+"</td>";
+	                text += 	"<td style='display:none;'><input type='hidden' name='REMARK_"+ycnt+"' value='"+data[i].REMARK+"'>"+data[i].REMARK+"</td>";
+	                text += 	"<td style='display:none;'><input type='hidden' name='FR_COMP_CD_"+ycnt+"' value='"+data[i].FR_COMP_CD+"'>"+data[i].FR_COMP_CD+"</td>";
+	                text += 	"<td style='display:none;'><input type='hidden' name='SUB_TAG_"+ycnt+"' value='"+data[i].SUB_TAG+"'>"+data[i].SUB_TAG+"</td>";
+	                text += 	"<td style='display:none;'><input type='hidden' name='FR_GRPCD_"+ycnt+"' value='"+data[i].FRCOMPT_GRPCD+"'>"+data[i].FRCOMPT_GRPCD+"</td>";
+	                text += 	"<td style='display:none;'><input type='hidden' name='TO_GRPCD_"+ycnt+"' value='"+data[i].TOCOMPT_GRPCD+"'>"+data[i].TOCOMPT_GRPCD+"</td>";
+	                text += 	"<td style='display:none;'><input type='hidden' name='TO_COMPT_CD_"+ycnt+"' value='"+data[i].TOCOMPT_CD+"'>"+data[i].TOCOMPT_CD+"</td>";
+	                text += 	"<td style='display:none;'><input type='hidden' name='EQUIP1_CD_"+ycnt+"' value='"+data[i].EQUIP1_CD+"'>"+data[i].EQUIP1_CD+"</td>";
+	                text += 	"<td style='display:none;'><input type='hidden' name='EQUIP2_CD_"+ycnt+"' value='"+data[i].EQUIP2_CD+"'>"+data[i].EQUIP2_CD+"</td>";
+	                text += 	"<td style='display:none;'><input type='hidden' name='EQUIP3_CD_"+ycnt+"' value='"+data[i].EQUIP3_CD+"'>"+data[i].EQUIP3_CD+"</td>";
+	                text += 	"<td style='display:none;'><input type='hidden' name='EQUIP4_CD_"+ycnt+"' value='"+data[i].EQUIP4_CD+"'>"+data[i].EQUIP4_CD+"</td>";
+	                text += 	"<td style='display:none;'><input type='hidden' name='FRCOMPT_GRPNM_"+ycnt+"' value='"+data[i].FRCOMPT_GRPNM+"'>"+data[i].FRCOMPT_GRPNM+"</td>";
+	                text += 	"<td style='display:none;'><input type='hidden' name='FRCOMPT_NM_"+ycnt+"' value='"+data[i].FRCOMPT_NM+"'>"+data[i].FRCOMPT_NM+"</td>";
+	                text += 	"<td style='display:none;'><input type='hidden' name='TOCOMPT_GRPNM_"+ycnt+"' value='"+data[i].TOCOMPT_GRPNM+"'>"+data[i].TOCOMPT_GRPNM+"</td>";
+	                text += 	"<td style='display:none;'><input type='hidden' name='TOCOMPT_NM_"+ycnt+"' value='"+data[i].TOCOMPT_NM+"'>"+data[i].TOCOMPT_NM+"</td>";
+	                text += 	"<td style='display:none;'>";
+	                if(data[i].MSG2 == "URL"){
+						
+						text += "<input type='hidden' id='itemCompartmentGrpcd' name='itemCompartmentGrpcd_"+ ycnt+"' value='"+data[i].compt_grpcd+"'>";
+						text += "<input type='hidden' id='itemCompartmentCd' name='itemCompartmentCd_"+ ycnt+"' value='"+data[i].compt_cd+"'>";
+						text += "<input type='hidden' id='itemCompartmentName' name='itemCompartmentName_"+ ycnt+"' value='"+data[i].compt_nm+"'>";
+						text += "<input type='hidden' id='itemCompartmentNameEn' name='itemCompartmentNameEn_"+ rowcount+"' value='"+data[i].compt_nm_en+"'>";
+						text += "<input type='hidden' id='itemEquipment1' name='itemEquipment1_"+ ycnt+"' value='"+data[i].equip_cd1+"'>";
+						text += "<input type='hidden' id='itemEquipment2' name='itemEquipment2_"+ ycnt+"' value='"+data[i].equip_cd2+"'>";
+						text += "<input type='hidden' id='itemEquipment3' name='itemEquipment3_"+ ycnt+"' value='"+data[i].equip_cd3+"'>";
+						text += "<input type='hidden' id='itemEquipment4' name='itemEquipment4_"+ ycnt+"' value='"+data[i].equip_cd4+"'>";
+						
+						//$("#app_tbl").append(text2);
+					}
+	                text += "</td>";
+	                text += "</tr>";
+					$("#app_tbl").append(text);
+					ycnt = ycnt+1;
+					rowcount = rowcount+1;
+				}		
+			}
+			$("#allCheckBox").prop("checked", false);
+			if(ycnt==0){
+				$("#app_no_tr").css("display", '');
+			}
+		}else{
+			$("#app_no_tr").css("display", '');
+		}
+		$("#LISTSIZE").val(rowcount);
+	}
+    
+    function setMsg(getMsg){
+    	var msg = "";
+    	
+    	switch(getMsg){
+			case "FWL0200054_" :
+				msg = "<%=getPro.getProperty("FWL0200054_",languageCodeForConversion)%>";
+			break;
+			case "FWL0200055_" :
+				msg = '<%=getPro.getProperty("FWL0200055_",languageCodeForConversion)%>';
+			break;
+			case "FWL0200056_" :
+				msg = '<%=getPro.getProperty("FWL0200056_",languageCodeForConversion)%>';
+			break;
+			case "FWL0200054_" :
+				msg = "<%=getPro.getProperty("FWL0200054_",languageCodeForConversion)%>";
+			break;
+			case "FWL0200057_" :
+				msg = "<%=getPro.getProperty("FWL0200057_",languageCodeForConversion)%>";
+			break;
+			case "FWL0200058_" :
+				msg = "<%=getPro.getProperty("FWL0200058_",languageCodeForConversion)%>";
+			break;
+			case "NODST" :
+				msg = "<%=getPro.getProperty("FWL1300045_",languageCodeForConversion)%>";
+			break;
+		}
+    	
+    	return msg;
+    }
+    
+    var org_user_id = "";
+	var org_target_ip = "";
+	var org_port = "";
+	var org_job = "";
+	var org_remark = "";
+	var org_target_grp = "";
+	var org_tmp_seq = "";
+    function CheckSelect(id){
+    	var td = $("#app_search_tr_" +id).children();
+		
+		org_user_id = td.eq(2).text().trim();
+		org_target = td.eq(3).text().trim();
+		org_port = td.eq(9).text().trim();
+		org_remark = td.eq(5).text().trim();
+		org_job = td.eq(10).text().trim();
+		org_target_grp = td.eq(12).text().trim();
+		org_tmp_seq = td.eq(13).text().trim();
+		
+		if(org_remark == "기타"){
+			org_remark = "ETC";
+		}
+		
+		$(".input-text-user-id").val(org_user_id);
+		$(".input-text-target-server").val(org_target);
+		$(".input-text-port").val(org_port);
+		$(".textarea-content").val(org_job);
+		$("#proto_type").val(org_remark);
+		$("#server_type").val(org_target_grp);
+        $("#tmp_seq").val(org_tmp_seq);
+        //$("#reg_ip").val(org_user_ip);
+	}
+    
+    function initUpdateFrom(){
+    	$(".input-text-user-id").val("");
+		$(".input-text-target-server").val("");
+		$(".input-text-port").val("");
+		$(".textarea-content").val("");
+		$("#proto_type").val("");
+		$("#server_type").val("");
+        $("#tmp_seq").val("");
+    }
+    
+</script>					
+</head>
+
+<body>
+
+
+<div class="columns" comment="begin of body div">
+<form name="fwReqIdUp_mvl_form" enctype="multipart/form-dat" method="POST" onsubmit="return false;">
+	<!-- 사이트통합 hidden 추가  -->
+	<INPUT type="hidden" name="CMD">
+	<INPUT type="hidden" id="REQ_NO" name="REQ_NO" value="<%= CommonUtil.encodeBySS(REQ_NO) %>">
+	<INPUT type="hidden" name="UP_MODE" id="UP_MODE" value="NEW_ID">
+	<Input type="hidden" name="tmpSeq">
+	<input type="hidden" name="JOB_GRP_ID" value="<%=pm.getString("JOB_GRP_ID").trim()%>">
+	<input type="hidden" name="OP_GRP_NO" value="<%=pm.getString("OP_GRP_NO").trim()%>">
+	<input type="hidden" name="MN_ID" value="<%=pm.getString("MN_ID")%>">
+	<input type="hidden" name="MN_LVL" value="<%=pm.getString("MN_LVL")%>">
+	<INPUT TYPE="hidden" name="CIP" id="CIP" value="<%=request.getRemoteAddr() %>">
+	<input type="hidden" id="SYNC_YN" name="SYNC_YN">
+	<input type="hidden" id="APP_TYPE" name="APP_TYPE" value="">
+	<input type="hidden" id="LISTSIZE" name="LISTSIZE" value="">
+	<input type="hidden" id="LISTSIZE2" name="LISTSIZE2" value="">
+	<span id="Btndisplay3" style="display:none">
+		<table  width='100%'>
+		<tr align=center><td class="tdata" align="center"><iframe name="worker" width="490" height="100" frameborder="0" scrolling='no'"></iframe></TD></tr>
+		</table>
+	</span>
+	<table>
+	    <tr>
+			<td class="width-30"></td>
+	        <td class="width-760">
+	
+
+	<!--////////////////////////////////////////////////////////////////////////////////
+	    ////////////////////////////////////////////////////////////////////////////////
+	    ////////////////////////////////////////////////////////////////////////////////
+	    ////////////////////////////////////////////////////////////////////////////////
+	    //////////////////////////////////////////////////////////////////////////////// -->
+		    	<div id="div_apply" style="display:none">
+					<div class="columns">
+		                <div class="column">
+		
+		                    <div class="level ml-3 mb-2">
+		                        <div class="level-left">
+		                            <i class="fa fa-fw fa-solid fa-angle-right"></i>&nbsp;
+		                            <%=getPro.getProperty("FWL0400007_",languageCodeForConversion)%>
+		                        </div>
+		                    </div>
+		
+		                    <table class="table is-bordered is-narrow is-hoverable is-fullwidth is-border-top-thick mb-2">
+		                        <tr>
+		                            <td class="width-100 has-background-link-light is-vcentered has-text-centered">
+		                                <span class="is-size-7"><%=getPro.getProperty("FWL0200079_",languageCodeForConversion)%><!--사용자--></span>
+		                            </td>
+		                            <td class="">
+		                            	<div class="field is-grouped is-expanded">
+		                                    <input type="text" class="input is-small input-request-user-id" name="user_id_txt" onkeypress="if (13 == event.keyCode) SearchUser('I');" value='<%=ssoUserInfo.ep_username%>(<%=ssoUserInfo.ep_loginid%>)' >
+		                                    <a type="button" class="button is-small ml-1 is-link width-100 btn-search-request-user"><%=getPro.getProperty("FWL0100057_",languageCodeForConversion)%></a>
+		                                </div>
+		                            </td>
+		                            <td class="width-100 has-background-link-light is-vcentered has-text-centered">
+		                                <span class="is-size-7"><%=getPro.getProperty("FWL0400012_",languageCodeForConversion)%></span>
+		                            </td>
+		                            <td class="">
+		                                <div class="field has-addons">
+		                                    <p class="control is-expanded">
+		                                        <input type="date" class="input is-small input-date-start" name="START_DT_SEARCH" value="<%=currdate%>">
+		                                    </p>
+		                                    <p class="control mx-2">
+		                                        <span>~</span>
+		                                    </p>
+		                                    <p class="control is-expanded">
+		                                        <input type="date" class="input is-small input-date-end" name="END_DT_SEARCH" value="">
+		                                    </p>
+		                                </div>
+		                            </td>
+		                        </tr>
+		                        <tr>
+		                            <td class="width-100 has-background-link-light is-vcentered has-text-centered">
+		                                <span class="is-size-7">사용자IP</span>
+		                            </td>
+		                            <td class="" colspan="3">
+		                                <input type="text" class="input is-small">
+		                            </td>
+		                        </tr>
+		                    </table>
+							<div class="block is-pulled-right">
+		                        <button class="button is-small ml-1 is-link width-100"><%=getPro.getProperty("FWL0100057_",languageCodeForConversion)%></button>
+		                    </div>
+		                </div>
+		            </div>
+		            <div class="columns">
+		                <div class="column">
+		
+		                    <div class="level ml-3 mb-2">
+		                        <div class="level-left">
+		                            <i class="fa fa-fw fa-solid fa-angle-right"></i>&nbsp;
+		                            <%=getPro.getProperty("FWL0400024_",languageCodeForConversion)%>
+		                        </div>
+		                    </div>
+		
+		                    <table class="table is-bordered is-narrow is-hoverable is-fullwidth is-border-top-thick mb-2">
+		                        <tr class="has-background-link-light is-vcentered has-text-centered is-size-7">
+		                            <td><%=getPro.getProperty("FWL0100049_",languageCodeForConversion)%><!--번호--></td>
+		                            <td><%=getPro.getProperty("FWL1300048_",languageCodeForConversion)%></td>
+		                            <td>Knox Portal ID</td>
+		                            <td><%=getPro.getProperty("FWL1300021_",languageCodeForConversion)%></td>
+		                            <td><%=getPro.getProperty("FWL1300023_",languageCodeForConversion)%></td>
+		                            <td><%=getPro.getProperty("FWL0100050_",languageCodeForConversion)%></td>
+		                            <td><%=getPro.getProperty("FWL0100044_",languageCodeForConversion)%></td>
+		                        </tr>
+		                        <tr>
+		                            <td colspan="7" class="has-text-centered is-vcentered height-50 is-size-7"><%=getPro.getProperty("FWL1300024_",languageCodeForConversion)%></td>
+		                        </tr>
+		                    </table>
+		                </div>
+		            </div>
+		        </div>
+  <!--////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////// -->
+   
+	            <div class="columns">
+	                <div class="column">
+	
+	                    <div class="level ml-3 mb-2">
+	                        <div class="level-left">
+	                            <i class="fa fa-fw fa-solid fa-angle-right"></i>&nbsp;
+	                            <%=getPro.getProperty("FWL0200003_",languageCodeForConversion)%>
+	                        </div>
+	                    </div>
+	
+	                    <table class="table is-bordered is-narrow is-hoverable is-fullwidth is-border-top-thick">
+	                        <tr>
+	                            <td class="width-100 has-background-link-light is-vcentered has-text-centered">
+	                                <span class="is-size-7"><%=getPro.getProperty("FWL1300022_",languageCodeForConversion)%></span>
+	                            </td>
+	                            <td class="">
+	                            	<input type="hidden" id="tmp_seq" name="tmp_seq">
+	                                <input type="text" class="input is-small is-expanded input-text-user-id" readonly>
+	                            </td>
+	                            <td class="width-100 has-background-link-light is-vcentered has-text-centered">
+	                                <span class="is-size-7"><%=getPro.getProperty("FWL1300023_",languageCodeForConversion)%></span>
+	                            </td>
+	                            <td class="">
+	                                <input type="text" class="input is-small is-expanded input-text-target-server" readonly>
+	                                <input type="hidden" id="server_type" name="server_type" value="">
+	                            </td>
+	                        </tr>
+	                        <tr>
+	                            <td class="width-100 has-background-link-light is-vcentered has-text-centered">
+	                                <span class="is-size-7"><%=getPro.getProperty("FWL0100050_",languageCodeForConversion)%></span>
+	                            </td>
+	                            <td class="">
+	                                <input type="text" class="input is-small is-expanded input-text-port" readonly>
+	                            </td>
+	                            <td class="width-100 has-background-link-light is-vcentered has-text-centered">
+	                                <span class="is-size-7">TCP/UDP</span>
+	                            </td>
+	                            <td class="">
+	                            	<input type="text" class="input is-small is-expanded" id="proto_type" name="proto_type">
+	                                <!-- <div class="select is-small is-fullwidth">
+	                                    <select class="select select-protocol-type">
+	                                        <option value="TCP">TCP</option>
+	                                        <option value="UDP">UDP</option>
+	                                        <option value="TCPUDP">TCP, UDP</option>
+	                                        <option value="ETC">기타</option>
+	                                    </select>
+	                                </div> -->
+	                            </td>
+	                        </tr>
+	                        <tr>
+	                            <td class="width-100 has-background-link-light is-vcentered has-text-centered">
+	                                <span class="is-size-7"><%=getPro.getProperty("FWL0100051_",languageCodeForConversion)%><!--사용목적--></span>
+	                            </td>
+	                            <td class="" colspan="3">
+	                                
+	                                <div class="field mb-0">
+	                                    <div class="control">
+	                                        <textarea class="textarea is-small has-fixed-size textarea-content" rows="5"></textarea>
+	                                    </div>
+	                                </div>
+	
+	                            </td>
+	                        </tr>
+	                    </table>
+	
+	                </div>
+	            </div>
+	
+	<!--////////////////////////////////////////////////////////////////////////////////
+	    ////////////////////////////////////////////////////////////////////////////////
+	    ////////////////////////////////////////////////////////////////////////////////
+	    ////////////////////////////////////////////////////////////////////////////////
+	    //////////////////////////////////////////////////////////////////////////////// -->
+	
+	            <div class="columns">
+	                <div class="column">
+	
+	                    <div class="level ml-3 mb-2">
+	                        <div class="level-left">
+	                            <i class="fa fa-fw fa-solid fa-angle-right"></i>&nbsp;
+	                            <%=getPro.getProperty("FWL1300049_",languageCodeForConversion)%>
+	                        </div>
+	                    </div>
+	
+	                    <table class="table is-bordered is-narrow is-hoverable is-border-top-thick mb-2 table-scrollable" id="app_tbl">
+	                        <tr class="has-background-link-light is-vcentered has-text-centered is-size-7">
+	                            <%-- <td><%=getPro.getProperty("ECT0100027_",languageCodeForConversion)%><!--선택--></td> --%>
+	                            <td><input type="checkbox" id="allCheckBox" onClick="javascript:allCheck();" checked>  </td>
+	                            <td class="userTdClass"><%=getPro.getProperty("FWL0100049_",languageCodeForConversion)%><!--번호--></td>
+	                            <td class="userTdClass"><%=getPro.getProperty("FWL1300022_",languageCodeForConversion)%></td>
+	                            <td class="userTdClass"><%=getPro.getProperty("FWL1300023_",languageCodeForConversion)%> IP/URL</td>
+	                            <td class="userTdClass"><%=getPro.getProperty("FWL0100050_",languageCodeForConversion)%></td>
+	                            <td class="userTdClass">TCP/UDP</td>
+	                            <td class="userTdClass"><%=getPro.getProperty("FWL0100051_",languageCodeForConversion)%><!--사용목적--></td>
+	                            <td class="userTdClass"><%=getPro.getProperty("FWL0200013_",languageCodeForConversion)%></td>
+	                            <td class="userTdClass"><%=getPro.getProperty("FWL0200014_",languageCodeForConversion)%></td>
+	                            <!-- <td><input type="checkbox" class="checkbox"></td> -->
+	                        </tr>
+	                        <tr id="app_no_tr">
+	                            <td style="width:800px;" colspan="9" class="has-text-centered is-vcentered height-50 is-size-7"><%=getPro.getProperty("FWL1300024_",languageCodeForConversion)%></td>
+	                        </tr>
+	                    </table>
+	                    <div class="block is-pulled-left">
+	                        <button class="button is-small is-danger width-100 btn-temporary-delete"><%=getPro.getProperty("FWL0100054_",languageCodeForConversion)%></button>
+	                    </div>
+	                    <div class="block is-pulled-right">
+	                        <button class="button is-small is-link btn-temporary-save"><%=getPro.getProperty("FWL0100047_",languageCodeForConversion)%></button>
+	                    </div>
+	
+	                    <br>
+	                    <br>
+	                    <br>
+	
+	                    <div class="block ml-5">
+	                        <p class="is-size-7">
+	                            <i class="fa fa-fw  fa-info-circle"></i>&nbsp;
+	                            <%=getPro.getProperty("FWL0100031_",languageCodeForConversion)%>
+	                        </p>
+	                        <p class="is-size-7">
+	                            <i class="fa fa-fw  fa-info-circle"></i>&nbsp;
+	                            <%=getPro.getProperty("FWL0100032_",languageCodeForConversion)%>
+	                        </p>
+	                        <p class="is-size-7">
+	                            <i class="fa fa-fw  fa-info-circle"></i>&nbsp;
+	                            <span class="has-text-link">
+	                            	<%=getPro.getProperty("FWL0000023_",languageCodeForConversion)%>
+	                            </span>
+	                        </p>
+	                        <p class="is-size-7">
+	                            <i class="fa fa-fw  fa-info-circle"></i>&nbsp;
+	                            <%=getPro.getProperty("FWL1300018_",languageCodeForConversion)%>
+	                        </p>
+	                        <p class="is-size-7">
+	                            <i class="fa fa-fw  fa-info-circle"></i>&nbsp;
+	                            <%=getPro.getProperty("FWL0200020_",languageCodeForConversion)%>
+	                        </p>
+	                    </div>
+	
+	                </div>
+	            </div>
+	
+	<!--////////////////////////////////////////////////////////////////////////////////
+	    ////////////////////////////////////////////////////////////////////////////////
+	    ////////////////////////////////////////////////////////////////////////////////
+	    ////////////////////////////////////////////////////////////////////////////////
+	    //////////////////////////////////////////////////////////////////////////////// -->
+	
+	            <div class="columns">
+	                <div class="column">
+	                    <hr>
+	                    <div class="block has-text-centered">
+	                        <!-- <button class="button btn-form-cancel">취소</button> -->
+	                        <button class="button is-link btn-form-submit"><%=getPro.getProperty("FWL0200017_",languageCodeForConversion)%></button>
+	                    </div>
+	                    <div id="cache" width="100%" style="position: absolute; visibility: hidden;left:200px;top:800px;" align="center">
+			                <table border="0" cellpadding="0" cellspacing="0" width="343">
+			                <tr>
+			                    <td bgcolor="#ffffff" align=center><img src="/it4u/images/common/loading2_<%=languageCodeForConversion %>.gif" border=0></td>
+			                </tr>
+			                </table>
+		            	</div>  
+	                </div>
+	            </div>
+			
+<!--////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////// -->
+
+        </td>
+    </tr>
+</table>
+</form>
+</div comment="end of body div">
+
+<!--////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////// -->
+</body>
