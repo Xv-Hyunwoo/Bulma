@@ -1,0 +1,141 @@
+function renderTable(data) {
+    var tableBody = $("#app_tbl tbody");
+    tableBody.empty();
+
+    if (data.length > 0) {
+        data.forEach(function (item, index) {
+            const row = `
+                <tr class="is-vcentered has-text-centered is-size-7" 
+                    id="app_search_tr_${index}" 
+                    data-user-ip="${item.REQ_SOURCE}" 
+                    data-target-server="${item.TARGET}" 
+                    data-port="${item.PORT}" 
+                    data-protocol="${item.REMARK}" 
+                    data-purpose="${item.JOB}">
+                    
+                    <td>
+                        <input type="checkbox" 
+                               name="DEL_CHECK_${index}" 
+                               value="${item.TMP_SEQ}" 
+                               ${item.isRegist === 'Y' ? 'disabled' : 'checked'}>
+                    </td>
+                    <td class='userTdClass'>${index + 1}</td>
+                    <td class='userTdClass'>${item.REQ_SOURCE}</td>
+                    <td class='userTdClass'>${item.TARGET}</td>
+                    <td class='userTdClass'>${item.PORT}</td>
+                    <td class='userTdClass'>${item.REMARK}</td>
+                    <td class='userTdClass'>${item.JOB}</td>
+                    <td class='userTdClass'>${item.EQUIP_YN === 'Y' ? 'YES' : 'NO'}</td>
+                    <td class='userTdClass'>${item.isRegist === 'Y' ? '신청불가' : '신청가능'}</td>
+                </tr>
+            `;
+            tableBody.append(row);
+        });
+    } else {
+        tableBody.append(`
+        <tr>
+            <td style="width:800px;" colspan="9" class="has-text-centered is-vcentered height-50 is-size-7">
+                <%=getPro.getProperty("FWL1300024_",languageCodeForConversion)%>
+            </td>
+        </tr>
+        `);
+    }
+}
+// Row 클릭 이벤트 – 선택된 row의 데이터로 input 채우기
+$(document).on('click', '#app_tbl tbody tr', function () {
+    var userIp = $(this).data("user-ip");
+    var targetServer = $(this).data("target-server");
+    var port = $(this).data("port");
+    var protocol = $(this).data("protocol");
+    var purpose = $(this).data("purpose");
+
+    // 입력 필드에 데이터 채우기
+    $(".input-text-user-ip").val(userIp);
+    $(".input-text-target-server").val(targetServer);
+    $(".input-text-port").val(port);
+    $("#proto_type").val(protocol);
+    $(".textarea-content").val(purpose);
+    $("#row_id").val($(this).attr('id'));  // 수정할 row id 저장
+});
+
+function updateRow() {
+    var rowId = $("#row_id").val();
+    var userIp = $(".input-text-user-ip").val();
+    var targetServer = $(".input-text-target-server").val();
+    var port = $(".input-text-port").val();
+    var protocol = $("#proto_type").val();
+    var purpose = $(".textarea-content").val();
+
+    if (!rowId) {
+        alert("수정할 항목을 선택하세요.");
+        return;
+    }
+
+    // 선택된 체크박스 개수 확인
+    var checkedCount = $("#app_tbl tbody input[type='checkbox']:checked").length;
+    if (checkedCount > 1) {
+        alert("하나의 항목만 수정할 수 있습니다.");
+        return;
+    }
+
+    // 수정 요청 AJAX
+    $.ajax({
+        type: "POST",
+        url: "/itvoc/it4u/firewall/fwReqUnifyTempPopUp_min_fvl.jsp",
+        data: {
+            CMD: "REQFW_INTEGRATE_DETAIL_TEMP_UPDATE",
+            USER_ID: userIp,
+            TARGET: targetServer,
+            PORT: port,
+            REMARK: protocol,
+            JOB: purpose,
+            TMP_SEQ: $("#" + rowId).find("input[type='checkbox']").val()
+        },
+        success: function (response) {
+            alert("수정이 완료되었습니다.");
+            fetchData();  // 수정 후 테이블 재조회
+        },
+        error: function (xhr, status, error) {
+            alert("수정 실패: " + error);
+        }
+    });
+}
+
+
+function saveSelectedRows() {
+    var selectedRows = [];
+    $("#app_tbl tbody input[type='checkbox']:checked").each(function () {
+        selectedRows.push($(this).val());
+    });
+
+    if (selectedRows.length === 0) {
+        alert("저장할 항목을 선택하세요.");
+        return;
+    }
+
+    var tmpSeqList = selectedRows.join(',');
+
+    $.ajax({
+        type: "POST",
+        url: "/itvoc/it4u/firewall/fwReqUnifyTempPopUp_min_fvl.jsp",
+        data: {
+            CMD: "REQFW_INTEGRATE_DETAIL_INSERT",
+            TMP_SEQ: tmpSeqList
+        },
+        success: function (response) {
+            alert("저장이 완료되었습니다.");
+            window.close();  // 팝업 닫기
+            window.opener.refreshTable(response);  // 부모 페이지 테이블 갱신
+        },
+        error: function (xhr, status, error) {
+            alert("저장 실패: " + error);
+        }
+    });
+}
+
+
+
+
+
+
+
