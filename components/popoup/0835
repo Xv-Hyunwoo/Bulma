@@ -1,0 +1,55 @@
+	
+	                    <table class="table is-bordered is-narrow is-hoverable is-border-top-thick mb-2 table-scrollable" id="app_tbl">
+						<thead>
+	                        <tr class="has-background-link-light is-vcentered has-text-centered is-size-7">
+	                            <%-- <td><%=getPro.getProperty("ECT0100027_",languageCodeForConversion)%><!--선택--></td> --%>
+	                            <td><input type="checkbox" id="allCheckBox" onClick="javascript:allCheck();" checked>  </td>
+	                            <td class="userTdClass"><%=getPro.getProperty("FWL0100049_",languageCodeForConversion)%><!--번호--></td>
+	                            <td class="userTdClass">사용자 IP</td>
+	                            <td class="userTdClass">대상서버 IP</td>
+	                            <td class="userTdClass">포트</td>
+	                            <td class="userTdClass">TCP/UDP</td>
+	                            <td class="userTdClass">사용목적</td>
+	                            <td class="userTdClass">장비여부</td>
+	                            <td class="userTdClass">등록여부</td>
+	                            <!-- <td><input type="checkbox" class="checkbox"></td> -->
+	                        </tr>
+						</thead>
+						
+	                        <tr id="app_no_tr">
+	                            <td style="width:800px;" colspan="9" class="has-text-centered is-vcentered height-50 is-size-7"><%=getPro.getProperty("FWL1300024_",languageCodeForConversion)%></td>
+	                        </tr>
+	                    </table>
+                      
+                      
+                      function renderTable(data) {
+	console.log("render Table")
+    var tableBody = $("#app_tbl tbody");
+	tableBody.empty();
+	
+	  // 테이블 초기화
+    if (data.length > 0) {
+        data.forEach(function (item, index) {
+            const row = `
+                <tr class="is-vcentered has-text-centered is-size-7" id="app_search_tr_${index}">
+                    <td><input type="checkbox" name="DEL_CHECK_${index}" value="${item.TMP_SEQ}"></td>
+                    <td class='userTdClass'>${index + 1}</td>
+                    <td class='userTdClass'>${item.REQ_SOURCE}</td>
+                    <td class='userTdClass'>${item.TARGET}</td>
+                    <td class='userTdClass'>${item.PORT}</td>
+                    <td class='userTdClass'>${item.REMARK}</td>
+                    <td class='userTdClass'>${item.JOB}</td>
+                    <td class='userTdClass'>${item.EQUIP_YN === 'Y' ? 'YES' : 'NO'}</td>
+                    <td class='userTdClass'>${item.isRegist === 'Y'? '신청불가' : '신청가능'}</td>
+                </tr>
+            `;
+            tableBody.append(row);
+        });
+    } else {
+		tableBody.append(`
+		<tr>
+			<td style="width:800px;" colspan="9" class="has-text-centered is-vcentered height-50 is-size-7"><%=getPro.getProperty("FWL1300024_",languageCodeForConversion)%></td>
+		</tr>
+		`)
+    }
+}
