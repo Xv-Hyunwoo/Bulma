@@ -1,0 +1,439 @@
+<script>
+	var DOAPPSTATUS = false;
+
+	function loading_bar(view){
+		var ly = cache;
+	    if(true == view){
+	    	ly.style.visibility = "visible";
+	    }else{
+	    	ly.style.visibility = "hidden";
+	    }
+	}
+	
+
+	function isSaveSuccess() {
+		loading_bar(false);
+		DOAPPSTATUS = false;
+		var f = document.fwReqIdUp_mvl_form;
+	
+		f.target = "_self";
+		f.action = "/itvoc/it4u/firewall/fwReqIdTmp_min.jsp";
+		f.submit();
+	}
+
+	function isSaveFail() {
+		loading_bar(false);
+		DOAPPSTATUS = false;
+	    var toastParams = { msgType : "is-warning", msgPosition : "top-center", msgContent :'<%=getPro.getProperty("FWL0200033_",languageCodeForConversion)%>', };
+		renderToast(toastParams); 
+	//  alert("처리중 오류가 발생했습니다.");
+	    searchReqFWTemp("NEW");
+	}
+	
+	var fwReqMgt=false;
+
+	function fwReqMgtView(){
+	    
+	    if(!fwReqMgt){
+	    		$("#div_apply").css("display","block");
+	    		$("#div_csv_upload").css("display","none");
+	            fwReqMgt = true;
+	            
+	        //setIframeHeight('fwReqUpMgt_mvl_iframe');
+	    }
+	    else{
+	        //setIframeHeight('fwReqUpMgt_mvl_iframe');
+	        $("#div_apply").css("display","none");
+	        $("#div_csv_upload").css("display","block");
+	        fwReqMgt=false;
+	    }
+	}
+	/* 수정 */
+	function UpdateRequest(url,cmd){
+		var checked = false;
+		var i = 0;
+		//체크박스 여부 확인
+		var tmp_seq = "";
+		$("input[name*='DEL_CHECK_']").each(function(){
+			if(this.checked){
+				checked= true;
+				i++;
+				
+				var td = $("#app_search_tr_" +this.value).children();
+    			
+    			tmp_seq = td.eq(13).text().trim();
+			}
+		});
+		
+		
+		if(!checked){
+			var toastParams = { msgType : "is-warning", msgPosition : "top-center", msgContent :'<%=getPro.getProperty("RBS0100307_",languageCodeForConversion)%>', };
+			renderToast(toastParams); 
+			return;
+		}else if(i > 1){
+			var toastParams = { msgType : "is-warning", msgPosition : "top-center", msgContent :'<%=getPro.getProperty("FWL0100170_",languageCodeForConversion)%>', };
+			renderToast(toastParams); 
+	        return;
+		}else if($("#tmp_seq").val() != tmp_seq){
+			var toastParams = { msgType : "is-warning", msgPosition : "top-center", msgContent :'<%=getPro.getProperty("FWL1300079_",languageCodeForConversion)%>', };
+			renderToast(toastParams); 
+	        return;
+    	}
+		
+		//if(check_form() == false) return;
+	    
+	    var app_id = $(".input-text-user-id").val();
+	  	//var app_ip = $("#user_data").data("REC_IP").trim();
+	    var app_ip = $("#CIP").val().trim();
+	    var target = $(".input-text-target-server").val();
+	    var port = $(".input-text-port").val();
+	    var remark = $("#proto_type").val();
+	    var job = $(".textarea-content").val();
+	    job = job.replace(/</gi,"&lt;");
+        job = job.replace(/>/gi,"&gt;");
+	    var t_gbn = $("#server_type").val();
+	    var tmp_seq = $("#tmp_seq").val();
+	    
+	    $.ajax({
+			type: "GET",
+			url: url, //"/itvoc/it4u/firewall/fwReq_test_sub.jsp", //url: "/itvoc/esp/jsp/proxy/webReq_upload_IF.jsp", //
+			cache: false, // cache가 true일 때 Ajax 서버 프로그램(.jsp)을 변경해도 반영되지 않는 이슈가 있어 false로 설정한다.
+			dataType : "json",	
+			data: {
+				REQ_NO  : "<%=REQ_NO%>",
+				TMP_SEQ : tmp_seq,
+				REMARK  : remark,
+				JOB     : job,
+				CMD     : cmd
+			},
+			async: false, // 비동기 방식으로 ajax 응답을 받을 경우 프로세스상 문제가 발생하여 [async : false] 방식으로 처리한다. 
+			success: function(data) {
+				ResultMsg(data);
+				SearchList(data);
+				initUpdateFrom();
+			},
+			error:function(request,status,error){        
+				console.log(error); 
+				var toastParams = { msgType : "is-danger", msgPosition : "top-center", msgContent :'<%=getPro.getProperty("HXX0100126_",languageCodeForConversion)%>\n<%=getPro.getProperty("FWL2202004_",languageCodeForConversion)%>', };
+				renderToast(toastParams); 
+	        	return;	
+			}
+		});
+		//ResetForm();
+	}
+	
+	function DeleteRequest(url,cmd){
+	    var del_seq = "";
+	    
+	    $("input[name*='DEL_CHECK_']").each(function(){
+	    	if(this.checked){
+	    		var td = $("#app_search_tr_" +this.value).children();
+	    
+	    		var tmp_seq = td.eq(13).text().trim() + ",";
+	    		del_seq += tmp_seq;
+	    	}
+	    });
+	    
+	    if(del_seq == ""){
+    		var toastParams = { msgType : "is-danger" , msgPosition : "top-center", msgContent : '<%=getPro.getProperty("FWL0600080_",languageCodeForConversion)%>'};
+    		renderToast(toastParams);
+    	} else {
+    		if (parseInt($("#LISTSIZE").val()) < 15) $(".table-scrollable").css('height', '');
+    		del_seq = del_seq.substring(0, del_seq.length-1);
+    		
+    	    $.ajax({
+    	    	type: "GET",
+    	    	url: url, //"/itvoc/it4u/firewall/fwReq_test_sub.jsp", //url: "/itvoc/esp/jsp/proxy/webReq_upload_IF.jsp", //
+    	    	cache: false, // cache가 true일 때 Ajax 서버 프로그램(.jsp)을 변경해도 반영되지 않는 이슈가 있어 false로 설정한다.
+    	    	dataType : "json",	
+    	    	data: {
+  	    	    	REQ_NO : "<%=REQ_NO%>",
+  	    			TMP_SEQ : del_seq,
+  	    			CMD : cmd
+    	    	},
+    	    	async: false, // 비동기 방식으로 ajax 응답을 받을 경우 프로세스상 문제가 발생하여 [async : false] 방식으로 처리한다. 
+    	    	success: function(data){ 
+    	    		SearchList(data);
+    	    		ResultMsg(data);
+    	    	},
+    	    	error:function(request,status,error){        
+    	    		console.log(error); 
+    	    		var toastParams = { msgType : "is-danger" , msgPosition : "top-center", msgContent : '<%=getPro.getProperty("ECT0300024_",languageCodeForConversion)%>'};
+    				renderToast(toastParams);
+    	    	    return;
+    	    	}
+    	    });
+    	}
+	}
+	
+	function allCheck(){
+		
+		if($("#allCheckBox").is(":checked")){
+			//$("input[name*='DEL_CHECK_']").prop("checked", true);
+			$("input[name*='DEL_CHECK_']").each(function(){
+	    		if(!this.disabled){
+	    			$(this).prop("checked", true);
+	    		}
+	    	});
+		}else{
+			//$("input[name*='DEL_CHECK_']").prop("checked", false);
+			$("input[name*='DEL_CHECK_']").each(function(){
+	    		if(!this.disabled){
+	    			$(this).prop("checked", false);
+	    		}
+	    	});
+		}
+		
+	}
+	
+	function saveReqFW() {
+		var up_mode = $("#UP_MODE").val(); //;//
+		
+		var f = document.fwReqIdUp_mvl_form;
+		var save_seq = "";
+		var save_cnt = 0;
+
+		if(DOAPPSTATUS == true)
+   		{
+	        alert("Approval is in progress. Please wait!");
+	        return;
+    	}
+		
+	    $("input[name*='DEL_CHECK_']").each(function(){
+	    	var td = $("#app_search_tr_" +this.value).children();
+	    	var list_seq = (parseInt(td.eq(1).text())-1);
+	    	if(this.checked){
+	    		var tmp_seq = td.eq(13).text().trim() + ",";
+	    		save_seq += tmp_seq;
+	    		save_cnt++;
+	    		$("#FW_"+list_seq).val("ON");
+	    	}else{
+	    		$("#FW_"+list_seq).val("");
+	    	}
+	    });
+	    
+	    save_seq = save_seq.substring(0, save_seq.length-1);
+	    
+	    if( saveCnt == 0 ) {
+	        var toastParams = { msgType : "is-warning" , msgPosition : "top-center", msgContent : '<%=getPro.getProperty("FWL0200038_",languageCodeForConversion)%>'};
+			renderToast(toastParams);
+    	    return;
+	    }
+	    else if( save_cnt > 200 ) {
+	        var toastParams = { msgType : "is-warning" , msgPosition : "top-center", msgContent : '<%=getPro.getProperty("FWL0200039_",languageCodeForConversion)%>'};
+			renderToast(toastParams);
+    	    return;
+	    }else if(save_cnt == 0){
+	    	var toastParams = { msgType : "is-warning" , msgPosition : "top-center", msgContent : '<%=getPro.getProperty("FWL0200053_",languageCodeForConversion)%>'};
+			renderToast(toastParams);
+	        return;
+	    }
+	    else {
+	    	if(up_mode == "NEW")
+	    	{
+	    		if(confirm('<%=getPro.getProperty("FWL0200040_",languageCodeForConversion)%> <%=getPro.getProperty("FWL0200041_",languageCodeForConversion)%>')){
+		            //fwReqUp_mvl_iframe.goSave();
+		            DOAPPSTATUS = true;
+	    	   		loading_bar(true);
+	    	   		
+		        	<%-- $.ajax({
+		    	    	type: "GET",
+		    	    	url: "/itvoc/it4u/firewall/fwReqUnifyTempPopUp_min_fvl.jsp", 
+		    	    	cache: false, // cache가 true일 때 Ajax 서버 프로그램(.jsp)을 변경해도 반영되지 않는 이슈가 있어 false로 설정한다.
+		    	    	dataType : "json",	
+		    	    	data: {
+		    	    	    		REQ_NO : "<%=REQ_NO%>",
+		    	    				TMP_SEQ : save_seq,
+		    	    				SYNC_YN : $("#SYNC_YN").val(),
+		    	    				CMD : "REQFW_ID_TEMP_SAVE"
+		    	    	},
+		    	    	async: false, // 비동기 방식으로 ajax 응답을 받을 경우 프로세스상 문제가 발생하여 [async : false] 방식으로 처리한다. 
+		    	    	success: function(data){ 
+		    	    		/* SearchList(data);
+		    	    		ResultMsg(data); */
+		    	    		isSaveSuccess();
+		    	    	},
+		    	    	error:function(request,status,error){        
+		    	    		console.log(error); 
+		    	    		var toastParams = { msgType : "is-danger" , msgPosition : "top-center", msgContent : '<%=getPro.getProperty("ECT0300024_",languageCodeForConversion)%>'};
+		    				renderToast(toastParams);
+		    	    	    return;
+		    	    	}
+		    	    }); --%>
+		    	    $("#CMD").val("REQFW_ID_TEMP_SAVE");
+		    	    $("#LISTSIZE2").val(save_cnt);
+
+		    	    f.target = "worker";
+	    	   		f.action = "/itvoc/it4u/firewall/fwReqIdUp_min_prc.jsp?JOB_GRP_ID=HQQ&OP_GRP_NO=G003&MN_ID=HQQ4&MN_LVL=3";
+	    	   		f.submit();
+		        }
+	    	}else{
+	    		if("EXTEND" == up_mode)
+	    	    {
+	    			$("#APP_TYPE").val("EXTEND");
+	    	        if(confirm('<%=getPro.getProperty("FWL0200042_",languageCodeForConversion)%> <%=getPro.getProperty("FWL0200043_",languageCodeForConversion)%>')){
+	    	            //fwReqUp_mvl_iframe.goSave();
+	    	            DOAPPSTATUS = true;
+	    	   			loading_bar(true);
+	    	   		
+	    	        	f.target = "_self";
+		    	   		f.action = "/itvoc/it4u/firewall/fwId_Extend_min.jsp?JOB_GRP_ID=HQQ&OP_GRP_NO=G003&MN_ID=HQQ4&MN_LVL=3";
+		    	   		f.submit();
+	    	        }
+	    	    }
+	    	    else if("EXPIRE" == up_mode)
+	    	    {
+	    	    	$("#APP_TYPE").val("CLOSE");
+	    	        if(confirm('<%=getPro.getProperty("FWL0200044_",languageCodeForConversion)%> <%=getPro.getProperty("FWL0200045_",languageCodeForConversion)%>')){
+	    	        	DOAPPSTATUS = true;
+		    	   		loading_bar(true);
+		    	   		
+	    	        	f.target = "_self";
+		    	   		f.action = "/itvoc/it4u/firewall/fwId_Extend_min.jsp?JOB_GRP_ID=HQQ&OP_GRP_NO=G003&MN_ID=HQQ4&MN_LVL=3";
+		    	   		f.submit();
+	    	        }
+	    	    }
+	    	}
+	    }
+	}
+	
+	function ResultMsg(data){
+		var msg = "";
+		var msgType = "is-danger";
+		var getMsg = data[0].MSG;
+		var getStatus = data[0].STATUS;
+		switch(getMsg){
+			case "DEL" :
+				msg = "<%=getPro.getProperty("VPN0100143_",languageCodeForConversion)%>";
+				msgType = "is-success";
+			break;
+			default:
+				//NEWREQ = "Y";
+				msg = "<%=getPro.getProperty("VPN0100141_",languageCodeForConversion)%>";
+				msgType = "is-success";
+			break;
+		}
+		
+		var toastParams = { msgType : msgType, msgPosition : "top-center", msgContent : msg, };
+		renderToast(toastParams);
+		
+		/* if(getStatus == "O"){
+			ResetForm();
+		} */
+	}
+	
+	function popupHelpdesk() {
+		var popUrl = "/it4unew/html/popup_firewall_servicedesk_KO.html";
+		var X = 755, Y = 580; //나타날 팝업창의 크기 
+<%
+	if (!languageCodeForConversion.equals("KO")) {
+%>
+		Y = 595; //나타날 팝업창의 크기
+		popUrl = "/it4unew/html/popup_firewall_servicedesk_EN.html";
+<%
+	}
+%>
+		var popHelpWin = window.open(popUrl, 'popHelpdesk','width='+X+'px,height='+Y+'px,top=0,left=0,toolbar=no,location=no,directories=no,status=no,menubar=no,scrollbars=yes,resizable=yes');
+		popHelpWin.focus();
+	}
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+// Form Controls
+//
+
+// input-text-user-id
+// input-text-target-server
+// input-text-port
+// select-protocol-type
+// textarea-content
+
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+// Functions
+//
+
+    function renderToast(params) {
+        bulmaToast.toast({ 
+            type: params.msgType,                  // is-primary, is-success, is-danger, is-warning, is-link, is-info
+            position: params.msgPosition,          // top-center, top-right, bottom-center, bottom-right, center
+            message: params.msgContent,
+            closeOnClick: true,
+            dismissible: true,
+            pauseOnHover: true,
+            duration: 5000,
+            animate: { in: 'fadeIn', out: 'fadeOut' },
+        });
+    }
+
+    function generateUniqueID() {
+        return "uid"+Math.random().toString(16).slice(2);
+    }
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+// Buttons
+//
+
+    $(".btn-show-ask").click( function() {
+        popupHelpdesk();
+    });
+
+    $(".btn-csv-download").click( function() {
+    });
+
+    $(".btn-resync").click( function() {
+    	fwReqMgtView();
+    });
+
+    $(".btn-csv-upload").click( function() {
+    	fileUpload();
+    });
+
+    $(".btn-temporary-delete").click( function() {
+        var url = "/itvoc/it4u/firewall/fwReqUnifyTempPopUp_min_fvl.jsp";
+        var cmd = "REQFW_ID_TEMP_DELETE";
+        DeleteRequest(url,cmd);
+    });
+
+    $(".btn-temporary-save").click( function() {
+        var url = "/itvoc/it4u/firewall/fwReqUnifyTempPopUp_min_fvl.jsp";
+        var cmd = "REQFW_ID_TEMP_UPDATE";
+        UpdateRequest(url,cmd);
+    });
+
+    
+    $(".btn-form-submit").click( function() {
+    	saveReqFW();
+    });
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+// onLoad 
+//
+
+    document.addEventListener("DOMContentLoaded", function(){
+        $(".step1").addClass("is-active is-link");
+    });
+
+</script>
+</html>
+<!-- 공통4 부분 추가S -->
+<%@ include file="/it4u/common/footer.jsp" %>
+<!-- 공통4 부분 추가E -->
+<%
+    } catch (RemoteException re)
+    {
+        EJBRuntimeException ee = (EJBRuntimeException) re.detail;
+        cat.error(re.getMessage());
+        HtmlManager.printAlertScript(out, MessageHandler.getMessage("CM2000"));
+    } catch (EJBRuntimeException ee)
+    {
+        cat.error(ee.getMessage());
+        HtmlManager.printAlertScript(out, MessageHandler.getMessage("CM2000"));
+    } catch (Exception e)
+    {
+        cat.error(e.getMessage());
+        HtmlManager.printAlertScript(out, MessageHandler.getMessage("CM2000"));
+    }
+%>
