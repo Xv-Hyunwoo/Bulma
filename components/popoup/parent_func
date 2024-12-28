@@ -1,0 +1,21 @@
+// 팝업에서 데이터 전달 시 호출되는 함수
+function addRowsToParentTable(data) {
+    const table = $("#parent_table tbody");  // 부모 페이지의 테이블 ID
+
+    data.forEach(function (item, index) {
+        const row = `
+            <tr>
+                <td><input type="checkbox" name="parent_DEL_CHECK_${index}" value="${item.TMP_SEQ}"></td>
+                <td>${index + 1}</td>
+                <td>${item.APP_ID}</td>
+                <td>${item.TARGET}</td>
+                <td>${item.PORT}</td>
+                <td>${item.REMARK}</td>
+                <td>${item.JOB}</td>
+                <td>${item.EQUIP_YN === 'Y' ? '장비 있음' : '장비 없음'}</td>
+                <td>${item.MESSAGE}</td>
+            </tr>
+        `;
+        table.append(row);
+    });
+}
