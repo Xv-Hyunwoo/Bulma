@@ -1,0 +1,184 @@
+$(document).ready(function () {
+    // 페이지 로드 시 조회
+    searchReqFWTemp();
+
+    // 수정
+    $(".btn-temporary-update").click(function () {
+        updateRequest();
+    });
+
+    // 삭제
+    $(".btn-temporary-delete").click(function () {
+        deleteRequest();
+    });
+
+    // 저장
+    $(".btn-temporary-save").click(function () {
+        saveRequest();
+    });
+});
+
+// 조회 함수
+function searchReqFWTemp() {
+    $.ajax({
+        type: "GET",
+        url: "/itvoc/it4u/firewall/fwReqUnifyTempPopUp_min_fvl.jsp",
+        data: {
+            CMD: "REQFW_ID_TEMP_SELECT",
+            REQ_NO: "<%=REQ_NO%>"
+        },
+        dataType: "json",
+        success: function (data) {
+            renderTable(data);
+        },
+        error: function () {
+            alert("조회 중 문제가 발생했습니다.");
+        }
+    });
+}
+
+// 테이블 렌더링 함수
+function renderTable(data) {
+    $("#app_tbl tbody").empty();  // 테이블 초기화
+    if (data.length > 0) {
+        data.forEach(function (item, index) {
+            const row = `
+                <tr id="app_search_tr_${index}">
+                    <td><input type="checkbox" name="DEL_CHECK_${index}" value="${item.TMP_SEQ}"></td>
+                    <td>${index + 1}</td>
+                    <td>${item.APP_ID}</td>
+                    <td>${item.TARGET}</td>
+                    <td>${item.PORT}</td>
+                    <td>${item.REMARK}</td>
+                    <td>${item.JOB}</td>
+                    <td>${item.EQUIP_YN === 'Y' ? '장비 있음' : '장비 없음'}</td>
+                    <td>${item.MESSAGE}</td>
+                </tr>
+            `;
+            $("#app_tbl").append(row);
+        });
+    } else {
+        const noData = `<tr><td colspan="9" class="has-text-centered">조회된 데이터가 없습니다.</td></tr>`;
+        $("#app_tbl").append(noData);
+    }
+}
+
+// 수정 요청 함수
+function updateRequest() {
+    const checkedRow = $("input[name^='DEL_CHECK_']:checked");
+
+    if (checkedRow.length !== 1) {
+        alert("수정할 항목을 한 개만 선택해주세요.");
+        return;
+    }
+
+    const rowId = checkedRow.val();
+    const row = $("#app_search_tr_" + rowId).children();
+
+    const updateData = {
+        TMP_SEQ: rowId,
+        APP_ID: row.eq(2).text().trim(),
+        TARGET: row.eq(3).text().trim(),
+        PORT: row.eq(4).text().trim(),
+        REMARK: row.eq(5).text().trim(),
+        JOB: row.eq(6).text().trim(),
+        EQUIP_YN: row.eq(7).text().trim() === '장비 있음' ? 'Y' : 'N'
+    };
+
+    $.ajax({
+        type: "POST",
+        url: "/itvoc/it4u/firewall/fwReqUnifyTempPopUp_min_fvl.jsp",
+        data: {
+            CMD: "REQFW_INTEGRATE_DETAIL_TEMP_UPDATE",
+            ...updateData
+        },
+        dataType: "json",
+        success: function (response) {
+            if (response[0].STATUS === "SUCCESS") {
+                alert("수정이 완료되었습니다.");
+                searchReqFWTemp();
+            } else {
+                alert("수정에 실패했습니다.");
+            }
+        },
+        error: function () {
+            alert("서버와 통신 중 문제가 발생했습니다.");
+        }
+    });
+}
+
+// 삭제 요청 함수
+function deleteRequest() {
+    const checkedRows = $("input[name^='DEL_CHECK_']:checked");
+
+    if (checkedRows.length === 0) {
+        alert("삭제할 항목을 선택해주세요.");
+        return;
+    }
+
+    const tmpSeqList = checkedRows.map(function () {
+        return $(this).val();
+    }).get().join(",");
+
+    if (confirm("선택한 항목을 삭제하시겠습니까?")) {
+        $.ajax({
+            type: "POST",
+            url: "/itvoc/it4u/firewall/fwReqUnifyTempPopUp_min_fvl.jsp",
+            data: {
+                CMD: "REQFW_INTEGRATE_DETAIL_TEMP_DELETE",
+                TMP_SEQ: tmpSeqList
+            },
+            dataType: "json",
+            success: function (response) {
+                if (response[0].STATUS === "SUCCESS") {
+                    alert("삭제가 완료되었습니다.");
+                    searchReqFWTemp();
+                } else {
+                    alert("삭제에 실패했습니다.");
+                }
+            },
+            error: function () {
+                alert("서버와 통신 중 문제가 발생했습니다.");
+            }
+        });
+    }
+}
+
+// 저장 요청 및 부모 페이지 데이터 전송
+function saveRequest() {
+    const checkedRows = $("input[name^='DEL_CHECK_']:checked");
+
+    if (checkedRows.length === 0) {
+        alert("저장할 항목을 선택해주세요.");
+        return;
+    }
+
+    const tmpSeqList = checkedRows.map(function () {
+        return $(this).val();
+    }).get().join(",");
+
+    if (confirm("선택한 항목을 저장하시겠습니까?")) {
+        $.ajax({
+            type: "POST",
+            url: "/itvoc/it4u/firewall/fwReqUnifyTempPopUp_min_fvl.jsp",
+            data: {
+                CMD: "REQFW_INTEGRATE_DETAIL_INSERT",
+                TMP_SEQ: tmpSeqList,
+                REQ_NO: "<%=REQ_NO%>"
+            },
+            dataType: "json",
+            success: function (response) {
+                if (response[0].STATUS === "SUCCESS") {
+                    alert("저장이 완료되었습니다.");
+                    window.opener.addRowsToParentTable(response);  // 부모 페이지로 데이터 전달
+                    window.close();
+                } else {
+                    alert("저장에 실패했습니다.");
+                }
+            },
+            error: function () {
+                alert("서버와 통신 중 문제가 발생했습니다.");
+            }
+        });
+    }
+}
