@@ -1,0 +1,75 @@
+let dropdownContent = $('#dropdownItems');
+let selectedItems = [];  // 선택된 항목 저장 배열
+
+// 드롭다운 목록 생성
+data.openArea.forEach(item => {
+  let isAllOption = item.code === 'ALL';
+  
+  dropdownContent.append(`
+    <label class="dropdown-item">
+      <input type="checkbox" 
+             class="${isAllOption ? 'select-all-checkbox' : 'area-checkbox'}" 
+             value="${item.code}" 
+             data-ip="${item.ip}" 
+             data-name="${item.name}" 
+             data-nameEn="${item.nameEn}" 
+             data-appGrp="${item.app_grp}">
+      ${item.name}
+    </label>
+  `);
+});
+
+// '전체' 선택 기능 (전체 체크 및 해제)
+$('.select-all-checkbox').on('change', function () {
+  const isChecked = $(this).is(':checked');
+  $('.area-checkbox').prop('checked', isChecked).trigger('change');
+});
+
+// 개별 체크박스 선택 시 데이터 처리
+$('.area-checkbox').on('change', function () {
+  selectedItems = [];  // 초기화 후 다시 수집
+
+  $('.area-checkbox:checked').each(function () {
+    let selectedItem = {
+      IP: $(this).data('ip'),
+      CODE: $(this).val(),
+      NAME: $(this).data('name'),
+      NAME_EN: $(this).data('nameen'),
+      APP_GRP: $(this).data('appgrp')
+    };
+    selectedItems.push(selectedItem);
+  });
+
+  updateDropdownText(selectedItems);
+});
+
+// 드롭다운 상단에 선택된 항목 표시
+function updateDropdownText(selectedItems) {
+  if (selectedItems.length > 0) {
+    let selectedText = selectedItems.map(item => item.NAME).join(', ');
+    $('#selectedItems').text(selectedText).attr('title', selectedText);
+  } else {
+    $('#selectedItems').text('Select items').attr('title', 'Select items');
+  }
+}
+
+// 개별 항목 해제 시 '전체' 상태 조정
+$('.area-checkbox').on('change', function () {
+  if ($('.area-checkbox:checked').length !== $('.area-checkbox').length) {
+    $('.select-all-checkbox').prop('checked', false);
+  } else {
+    $('.select-all-checkbox').prop('checked', true);
+  }
+});
+
+// 드롭다운 외부 클릭 시 닫기
+$(document).click(function (e) {
+  if (!$(e.target).closest('#multiSelectDropdown').length) {
+    $('#multiSelectDropdown').removeClass('is-active');
+  }
+});
+
+// 드롭다운 토글
+$('#multiSelectDropdown .dropdown-trigger button').on('click', function () {
+  $('#multiSelectDropdown').toggleClass('is-active');
+});
