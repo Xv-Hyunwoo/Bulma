@@ -1,0 +1,91 @@
+     #dropdownItems {
+      max-height: 300px;
+      /* 드롭다운 높이 제한 */
+      overflow-y: auto;
+      /* 스크롤 추가 */
+    }
+    
+
+              <!-- 출발지 전사오픈 Input -->
+              <div class="has-text-left" id="FWTAInput" style="display: none;">
+                <div class="field has-addons mb-0 mt-4">
+                  <div class="dropdown ml-3" id="multiSelectDropdown">
+                    <div class="dropdown-trigger">
+                      <button class="button is-small" aria-haspopup="true" aria-controls="dropdown-menu">
+                        <span id="selectedItems" title="전사 선택">전사 선택</span>
+                        <span class="icon is-small">
+                          <i class="fas fa-angle-down"></i>
+                        </span>
+                      </button>
+                    </div>
+                    <div class="dropdown-menu" id="dropdown-menu" role="menu">
+                      <div class="dropdown-content" id="dropdownItems">
+                        <!-- 체크박스 목록 삽입 -->
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <span class="has-text-grey-light is-size-7 ml-3 mt-1" style="visibility: hidden;">placehold</span>
+              </div>
+  
+    // 전사 오픈 select options
+
+    let dropdownContent = $('#dropdownItems');
+
+    // 전체 선택 체크박스 추가 (목록 최상단)
+    dropdownContent.append(`
+                <label class="dropdown-item">
+                    <input type="checkbox" id="selectAllCheckbox"> 전체
+                </label>
+            `);
+
+    // 동적으로 지역 옵션 추가
+    data.openArea.forEach(item => {
+      dropdownContent.append(`
+                    <label class="dropdown-item">
+                        <input type="checkbox" class="area-checkbox" value="${item.code}" data-name="${item.name}">
+                        ${item.name}
+                    </label>
+                `);
+    });
+
+    // 드롭다운 토글
+    $('#multiSelectDropdown .dropdown-trigger button').on('click', function () {
+      $('#multiSelectDropdown').toggleClass('is-active');
+    });
+
+    // 전체 선택 기능 추가
+    $('#selectAllCheckbox').on('change', function () {
+      const isChecked = $(this).is(':checked');
+      $('.area-checkbox').prop('checked', isChecked).trigger('change');
+    });
+
+    // 개별 체크박스 선택
+    $('.area-checkbox').on('change', function () {
+      let selected = [];
+      $('.area-checkbox:checked').each(function () {
+        selected.push($(this).data('name'));
+      });
+
+      // 툴팁으로 전체 항목 보여주기
+      if (selected.length > 0) {
+        let selectedText = selected.join(', ');
+        $('#selectedItems').text(selectedText).attr('title', selectedText);
+      } else {
+        $('#selectedItems').text('Select items').attr('title', 'Select items');
+      }
+
+      // 개별 항목 해제 시 "전체" 체크 해제
+      if ($('.area-checkbox:checked').length !== $('.area-checkbox').length) {
+        $('#selectAllCheckbox').prop('checked', false);
+      } else {
+        $('#selectAllCheckbox').prop('checked', true);
+      }
+    });
+
+    // 드롭다운 외부 클릭시 닫기
+    $(document).click(function (e) {
+      if (!$(e.target).closest('#multiSelectDropdown').length) {
+        $('#multiSelectDropdown').removeClass('is-active');
+      }
+    });
