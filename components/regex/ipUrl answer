@@ -1,0 +1,23 @@
+function validateIPorURL(input) {
+    let ipRegex = /^(?:\d{1,3}\.){3}\d{1,3}$/;  // 기본 IP 형식
+    let ipRangeRegex = /^(?:\d{1,3}\.){3}\d{1,3}-(?:\d{1,3})$/;  // IP 범위 형식
+    let domainRegex = /^([\w-]+\.)+[\w-]{2,}$/;  // 도메인 형식 (example.com, sub.example.co.kr 등)
+
+    // IP 검증 (범위 포함)
+    if (ipRegex.test(input) || ipRangeRegex.test(input)) {
+        // 숫자가 0~255 범위인지 확인
+        let parts = input.split(/\.|-/).map(Number);
+        if (parts.every(num => num >= 0 && num <= 255)) {
+            TARGET_GBN = "I";
+            return "IP";
+        }
+        return false; // 유효하지 않은 IP
+    } 
+    // 도메인 검증
+    else if (domainRegex.test(input)) {
+        TARGET_GBN = "U";
+        return "URL"; 
+    }
+
+    return false; // IP도 URL도 아닌 경우
+}
