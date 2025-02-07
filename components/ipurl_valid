@@ -1,0 +1,26 @@
+  function validateIPorURL(input) {
+    let ipRegex = /^(?:\d{1,3}\.){3}\d{1,3}(?:-(\d{1,3}))?$/;  // IP 및 범위 IP
+    let ipRangeRegex = /^(?:\d{1,3}\.){3}\d{1,3}-(?:\d{1,3})$/; // IP 
+    let domainRegex = /^([\w-]+\.)+[\w-]{2,}$/;  // 프로토콜 없이 도메인만 허용 (example.com, sub.example.co.kr 등)
+
+    // IP 범위는 IP로 인식
+    if (ipRegex.test(input) || ipRangeRegex.test(input)) {
+
+      //숫자 0~255
+      let parts = input.split(/\.|-/).map(Number);
+
+      if (parts.every(num => num >= 0 && num <= 255)) {
+
+        TARGET_GBN = "I";
+        return "IP" // IP 검증
+      }
+      return false;
+
+    }
+    // 도메인 검증 (프로토콜 없이 도메인만 허용)
+    else if (domainRegex.test(input)) {
+      TARGET_GBN = "U";
+      return "URL"
+    }
+    return false;
+  }
