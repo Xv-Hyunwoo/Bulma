@@ -1,0 +1,33 @@
+function validateIPorURL(input) {
+    let ipRegex = /^(?:\d{1,3}\.){3}\d{1,3}(?:-(\d{1,3})?)?$/;  // IP 및 범위 IP
+    let domainRegex = /^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/; // 도메인 검증 (영문 포함)
+
+    // 1️⃣ IP인지 확인
+    if (ipRegex.test(input)) {
+        let parts = input.split(/\.|-/).map(Number); // . 또는 - 기준으로 나누고 숫자로 변환
+
+        // 숫자가 0~255 범위에 있어야 함
+        if (!parts.every(num => num >= 0 && num <= 255)) {
+            return false; // 잘못된 IP
+        }
+
+        // 2️⃣ IP 범위인 경우 (마지막 숫자 확인)
+        if (input.includes("-")) {
+            let lastSegment = parts[3];  // 시작 숫자
+            let endRange = parts[4];     // 끝 숫자
+
+            if (endRange < lastSegment) {
+                return false; // 범위 숫자가 잘못됨
+            }
+        }
+
+        return "IP"; // 유효한 IP 또는 범위 IP
+    }
+
+    // 3️⃣ URL인지 확인
+    else if (domainRegex.test(input)) {
+        return "URL"; // 유효한 URL
+    }
+
+    return false; // IP도 URL도 아님
+}
